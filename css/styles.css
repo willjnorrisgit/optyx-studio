@@ -219,7 +219,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 .logo-mark { flex-shrink: 0; }
-.logo-mark .mark-ring { fill: var(--text); }
+.logo-mark .mark-ring { fill: none; stroke: var(--text); stroke-width: 2.5; }
 .logo-mark .mark-dot { fill: var(--accent-bright); }
 
 .logo-word {
