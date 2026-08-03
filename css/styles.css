@@ -3,18 +3,25 @@
 --------------------------------------------------- */
 
 :root {
-  --bg: #ffffff;
-  --bg-soft: #faf8f5;
-  --bg-panel: #f5f2ec;
+  --bg: #f1efe9;
+  --bg-black: #0a0a0c;
+  --bg-panel: #ffffff;
+  --panel-on-dark: rgba(255, 255, 255, 0.06);
   --border: rgba(10, 10, 10, 0.08);
   --border-strong: rgba(10, 10, 10, 0.15);
-  --text: #0d0d0e;
-  --text-dim: #58585f;
+  --border-dark: rgba(255, 255, 255, 0.14);
+  --border-dark-strong: rgba(255, 255, 255, 0.22);
 
-  /* text-safe accent (meets AA contrast on white); bright variant for fills/decoration only */
-  --accent: #8c6423;
-  --accent-bright: #e3b341;
-  --accent-dim: rgba(227, 179, 65, 0.14);
+  --text: #0d0d0e;
+  --text-dim: #55555c;
+  --text-on-dark: #f5f4f1;
+  --text-on-dark-dim: rgba(245, 244, 241, 0.68);
+
+  /* metallic dark blue accent, text-safe variant + brighter fill variant + on-dark variant */
+  --accent: #1f3a54;
+  --accent-bright: #3b6690;
+  --accent-on-dark: #8fb8dd;
+  --accent-dim: rgba(59, 102, 144, 0.16);
 
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Big Shoulders Stencil Display', var(--font);
@@ -68,7 +75,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   left: -999px;
   top: auto;
   background: var(--accent-bright);
-  color: #14110a;
+  color: #fff;
   padding: 0.75rem 1.25rem;
   z-index: 999;
   border-radius: 6px;
@@ -84,7 +91,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 /* ---------------------------------------------------
-   Intro — letter-by-letter reveal
+   Intro — letter-by-letter reveal, slowed into a real opening title
 --------------------------------------------------- */
 
 .intro {
@@ -101,10 +108,22 @@ ul { list-style: none; margin: 0; padding: 0; }
 .intro-skip .intro { display: none; }
 
 .intro-inner {
+  position: relative;
   text-align: center;
 }
 
+.intro-glow {
+  position: absolute;
+  inset: -40% -60%;
+  background: radial-gradient(circle, var(--accent-dim), transparent 65%);
+  opacity: 0;
+  transition: opacity 2.2s var(--ease-cinematic);
+  pointer-events: none;
+}
+.intro.run .intro-glow { opacity: 1; }
+
 .intro-word {
+  position: relative;
   margin: 0;
   display: flex;
   justify-content: center;
@@ -120,6 +139,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 .intro-sub {
+  position: relative;
   margin-top: 0.75rem;
   font-family: var(--font);
   font-weight: 600;
@@ -132,26 +152,39 @@ ul { list-style: none; margin: 0; padding: 0; }
 .intro-letter {
   display: inline-block;
   opacity: 0;
-  transform: translateY(0.4em);
+  transform: translateY(0.5em) scale(0.82);
+  text-shadow: 0 0 0 rgba(143, 184, 221, 0);
 }
 
 .intro.run .intro-letter {
-  animation: introLetterIn 0.7s var(--ease-cinematic) forwards;
-  animation-delay: calc(var(--i) * 65ms);
+  animation: introLetterIn 1.4s var(--ease-cinematic) forwards;
+  animation-delay: calc(var(--i) * 150ms);
 }
 
 @keyframes introLetterIn {
-  to { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(0.5em) scale(0.82);
+    text-shadow: 0 0 0 rgba(143, 184, 221, 0);
+  }
+  45% {
+    text-shadow: 0 0 28px rgba(143, 184, 221, 0.55);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    text-shadow: 0 0 0 rgba(143, 184, 221, 0);
+  }
 }
 
 .intro.exit {
   opacity: 0;
-  transition: opacity 0.9s var(--ease-cinematic);
+  transition: opacity 1.4s var(--ease-cinematic);
   pointer-events: none;
 }
 .intro.exit .intro-inner {
-  transform: scale(1.05);
-  transition: transform 1s var(--ease-cinematic);
+  transform: scale(1.06);
+  transition: transform 1.6s var(--ease-cinematic);
 }
 
 /* ---------------------------------------------------
@@ -175,11 +208,11 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .btn-primary {
   background: var(--accent-bright);
-  color: #14110a;
+  color: #fff;
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  background: #f0c364;
+  background: #4a79a8;
 }
 
 .btn-ghost {
@@ -193,35 +226,36 @@ ul { list-style: none; margin: 0; padding: 0; }
   color: var(--accent);
 }
 
+.btn-ghost-on-dark {
+  background: transparent;
+  color: var(--text-on-dark);
+  border-color: var(--border-dark-strong);
+}
+.btn-ghost-on-dark:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-on-dark);
+  color: var(--accent-on-dark);
+}
+
 /* ---------------------------------------------------
-   Header / nav
+   Header / nav — always black, nav links only
 --------------------------------------------------- */
 
 .site-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  --header-fg: #fff;
-  --header-bg: rgba(0, 0, 0, 0.25);
-  --header-border: rgba(255, 255, 255, 0.16);
-  color: var(--header-fg);
-  background: var(--header-bg);
+  color: var(--text-on-dark);
+  background: rgba(8, 8, 10, 0.7);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--header-border);
-  transition: background 0.5s var(--ease-cinematic), border-color 0.5s var(--ease-cinematic), color 0.5s var(--ease-cinematic);
-}
-
-.site-header.is-light {
-  --header-fg: var(--text);
-  --header-bg: rgba(255, 255, 255, 0.78);
-  --header-border: var(--border);
+  border-bottom: 1px solid var(--border-dark);
 }
 
 .header-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   height: 92px;
 }
 
@@ -306,7 +340,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .mobile-nav.open {
   max-height: 260px;
-  border-top-color: var(--header-border);
+  border-top-color: var(--border-dark);
 }
 .mobile-nav ul {
   display: flex;
@@ -322,7 +356,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 /* ---------------------------------------------------
-   Parallax background layers
+   Parallax background layers (off-white sections only)
 --------------------------------------------------- */
 
 .parallax-layer {
@@ -348,8 +382,21 @@ ul { list-style: none; margin: 0; padding: 0; }
   left: -140px;
   width: 420px;
   height: 420px;
-  background: radial-gradient(circle, rgba(10, 10, 10, 0.05), transparent 70%);
-  opacity: 0.9;
+  background: radial-gradient(circle, var(--accent-dim), transparent 70%);
+  opacity: 0.8;
+}
+
+/* ---------------------------------------------------
+   Full-bleed background video sections (shared)
+--------------------------------------------------- */
+
+.section-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
 }
 
 /* ---------------------------------------------------
@@ -359,20 +406,14 @@ ul { list-style: none; margin: 0; padding: 0; }
 .hero {
   position: relative;
   height: 100vh;
+  height: 100svh;
   min-height: 560px;
+  padding-block: 0;
   overflow: hidden;
-  background: #000;
+  background: var(--bg-black);
 }
 
-.hero-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 62% 50%;
-  z-index: 0;
-}
+.hero-video { object-position: 62% 50%; }
 
 .hero-overlay {
   position: absolute;
@@ -381,7 +422,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   pointer-events: none;
   background:
     linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 32%),
-    linear-gradient(to bottom, transparent 55%, var(--bg) 100%);
+    linear-gradient(to bottom, transparent 62%, var(--bg-black) 100%);
 }
 
 .hero-inner {
@@ -427,11 +468,13 @@ ul { list-style: none; margin: 0; padding: 0; }
   margin: 0 0 1.25rem;
 }
 
+.eyebrow-on-dark { color: var(--accent-on-dark); }
+
 /* ---------------------------------------------------
    Section shared
 --------------------------------------------------- */
 
-section { padding-block: clamp(4rem, 8vw, 8rem); }
+section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 
 .section-title {
   font-size: clamp(1.9rem, 3.6vw, 3rem);
@@ -449,11 +492,24 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
   margin: 0 0 3rem;
 }
 
+.why-sub-on-dark { color: var(--text-on-dark-dim); }
+
 /* ---------------------------------------------------
-   Services
+   Services — off-white sandwiched between two black transitions
 --------------------------------------------------- */
 
-.services { background: var(--bg-soft); }
+.services {
+  padding-block: clamp(7rem, 14vw, 11rem);
+  background: linear-gradient(
+    to bottom,
+    var(--bg-black) 0%,
+    var(--bg) 18%,
+    var(--bg) 82%,
+    var(--bg-black) 100%
+  );
+}
+
+.services .wrap { position: relative; z-index: 1; }
 
 .services-grid {
   margin-top: 3.5rem;
@@ -466,7 +522,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
   padding: 2.25rem 2rem;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: var(--bg);
+  background: var(--bg-panel);
   transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
 }
 .service-card:hover {
@@ -490,11 +546,23 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 }
 
 /* ---------------------------------------------------
-   Case study
+   Case study — black, dot-waves video
 --------------------------------------------------- */
 
-.case-study { position: relative; overflow: visible; }
-.case-study .wrap { position: relative; z-index: 1; }
+.case-study {
+  overflow: hidden;
+  background: var(--bg-black);
+  color: var(--text-on-dark);
+}
+.case-study .wrap { position: relative; z-index: 2; }
+
+.case-study-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 70%, var(--bg) 100%);
+}
 
 .case-study-inner {
   display: grid;
@@ -506,10 +574,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 .kenburns-frame {
   position: relative;
   aspect-ratio: 16 / 11;
-  border: 1px dashed var(--border-strong);
+  border: 1px dashed var(--border-dark-strong);
   border-radius: 16px;
   overflow: hidden;
-  background: var(--bg-panel);
+  background: var(--panel-on-dark);
 }
 
 .kenburns-media {
@@ -525,7 +593,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: var(--text-dim);
+  color: var(--text-on-dark-dim);
 }
 .screenshot-placeholder span {
   font-size: 0.85rem;
@@ -533,14 +601,14 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 }
 
 .case-tag {
-  color: var(--accent);
+  color: var(--accent-on-dark);
   font-size: 0.9rem;
   font-weight: 600;
   margin: 0 0 1.25rem;
 }
 
 .case-copy {
-  color: var(--text-dim);
+  color: var(--text-on-dark-dim);
   font-size: 1.02rem;
   margin: 0 0 1.75rem;
 }
@@ -554,7 +622,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 .case-results li {
   padding-left: 1.4rem;
   position: relative;
-  color: var(--text-dim);
+  color: var(--text-on-dark-dim);
   font-size: 0.92rem;
 }
 .case-results li::before {
@@ -565,14 +633,26 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent-bright);
+  background: var(--accent-on-dark);
 }
 
 /* ---------------------------------------------------
-   Why us
+   Why us — off-white, fades to black at its own bottom edge
 --------------------------------------------------- */
 
-.why-us { background: var(--bg-soft); }
+.why-us {
+  background: var(--bg);
+  overflow: hidden;
+}
+.why-us .wrap { position: relative; z-index: 2; }
+
+.why-us-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 72%, var(--bg-black) 100%);
+}
 
 .testimonials {
   display: grid;
@@ -586,7 +666,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
   padding: 2rem;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: var(--bg);
+  background: var(--bg-panel);
 }
 .testimonial p {
   font-size: 1.05rem;
@@ -615,11 +695,23 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 }
 
 /* ---------------------------------------------------
-   Contact
+   Contact — black, grey-marketing-banner video
 --------------------------------------------------- */
 
-.contact { position: relative; overflow: visible; }
-.contact .wrap { position: relative; z-index: 1; }
+.contact {
+  overflow: hidden;
+  background: var(--bg-black);
+  color: var(--text-on-dark);
+}
+.contact .wrap { position: relative; z-index: 2; }
+
+.contact-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 70%, var(--bg) 100%);
+}
 
 .contact-grid {
   display: grid;
@@ -635,7 +727,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
   display: block;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--text-dim);
+  color: var(--text-on-dark-dim);
   margin-bottom: 0.5rem;
 }
 
@@ -643,10 +735,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 .field textarea {
   width: 100%;
   padding: 0.85rem 1rem;
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
+  background: var(--panel-on-dark);
+  border: 1px solid var(--border-dark);
   border-radius: 10px;
-  color: var(--text);
+  color: var(--text-on-dark);
   font-family: inherit;
   font-size: 0.98rem;
   resize: vertical;
@@ -655,21 +747,21 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 .field input:focus,
 .field textarea:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--accent-on-dark);
 }
 
 .form-note {
   min-height: 1.2em;
   margin: 1rem 0 0;
   font-size: 0.9rem;
-  color: var(--accent);
+  color: var(--accent-on-dark);
 }
 
 .contact-direct {
   padding: 2rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-dark);
   border-radius: 16px;
-  background: var(--bg-panel);
+  background: var(--panel-on-dark);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -677,7 +769,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 }
 
 .contact-direct-label {
-  color: var(--text-dim);
+  color: var(--text-on-dark-dim);
   font-size: 0.9rem;
   margin: 0;
 }
@@ -685,10 +777,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 .contact-link {
   font-size: 1.15rem;
   font-weight: 600;
-  color: var(--text);
-  border-bottom: 1px solid var(--border-strong);
+  color: var(--text-on-dark);
+  border-bottom: 1px solid var(--border-dark-strong);
 }
-.contact-link:hover { color: var(--accent); border-color: var(--accent); }
+.contact-link:hover { color: var(--accent-on-dark); border-color: var(--accent-on-dark); }
 
 .contact-book { margin-top: 0.5rem; }
 
@@ -698,10 +790,45 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
   gap: 0.6rem;
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-on-dark);
 }
 .contact-whatsapp:hover { color: #25d366; }
 .contact-whatsapp svg { width: 22px; height: 22px; flex-shrink: 0; color: #25d366; }
+
+/* ---------------------------------------------------
+   Closing CTA — off-white easing down into black + gradient-bg video
+--------------------------------------------------- */
+
+.closing {
+  overflow: hidden;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+}
+
+.closing-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 48%, transparent 100%);
+}
+
+.closing .wrap {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.closing-title {
+  font-size: clamp(1.9rem, 3.6vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  max-width: 22ch;
+  margin: 0 auto 2rem;
+}
 
 /* ---------------------------------------------------
    Floating WhatsApp button — persistent across the whole page
@@ -730,10 +857,14 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 }
 
 /* ---------------------------------------------------
-   Footer
+   Footer — no colour of its own, continues the black the page ends on
 --------------------------------------------------- */
 
-.site-footer { background: var(--bg-panel); border-top: 1px solid var(--border); padding-block: 2.5rem; }
+.site-footer {
+  background: var(--bg-black);
+  color: var(--text-on-dark);
+  padding-block: 2.5rem;
+}
 
 .footer-inner {
   display: flex;
@@ -744,7 +875,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 }
 
 .footer-copy {
-  color: var(--text-dim);
+  color: var(--text-on-dark-dim);
   font-size: 0.85rem;
   margin: 0;
 }
@@ -775,8 +906,6 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
   .nav-toggle { display: flex; }
 
   .header-inner { height: 76px; }
-  .logo-primary { font-size: 1.4rem; }
-  .logo-sub { font-size: 0.56rem; }
 
   .hero-logo { top: 30%; }
 

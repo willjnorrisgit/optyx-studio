@@ -28,6 +28,7 @@
 
   <div class="intro" id="intro" aria-hidden="true">
     <div class="intro-inner">
+      <div class="intro-glow" aria-hidden="true"></div>
       <p class="intro-word intro-primary">
         <span class="intro-letter" style="--i:0">O</span><span class="intro-letter" style="--i:1">p</span><span class="intro-letter" style="--i:2">t</span><span class="intro-letter" style="--i:3">y</span><span class="intro-letter" style="--i:4">x</span>
       </p>
@@ -41,13 +42,6 @@
 
   <header class="site-header" id="top">
     <div class="wrap header-inner">
-      <a class="logo" href="#top" aria-label="Optyx Studio home">
-        <span class="logo-word">
-          <span class="logo-primary">Optyx</span>
-          <span class="logo-sub">Studio</span>
-        </span>
-      </a>
-
       <nav class="site-nav" aria-label="Primary">
         <ul>
           <li><a href="#services">Services</a></li>
@@ -74,7 +68,7 @@
 
     <!-- HERO -->
     <section class="hero" id="hero">
-      <video class="hero-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+      <video class="section-video hero-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
         <source src="assets/video/abstract-art-03.mp4" type="video/mp4">
       </video>
       <div class="hero-overlay" aria-hidden="true"></div>
@@ -88,6 +82,7 @@
 
     <!-- WHAT WE DO -->
     <section class="services" id="services">
+      <div class="parallax-layer blob-a" data-speed="0.2" aria-hidden="true"></div>
       <div class="wrap">
         <p class="eyebrow reveal">What we do</p>
         <h2 class="section-title reveal">Everything your site needs to earn its keep.</h2>
@@ -127,7 +122,10 @@
 
     <!-- CASE STUDY -->
     <section class="case-study" id="work">
-      <div class="parallax-layer blob-a" data-speed="0.22" aria-hidden="true"></div>
+      <video class="section-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+        <source src="assets/video/dot-waves.mp4" type="video/mp4">
+      </video>
+      <div class="case-study-fade" aria-hidden="true"></div>
       <div class="wrap case-study-inner">
         <div class="case-media reveal">
           <div class="kenburns-frame">
@@ -143,7 +141,7 @@
         </div>
 
         <div class="case-content reveal">
-          <p class="eyebrow">Case study</p>
+          <p class="eyebrow eyebrow-on-dark">Case study</p>
           <h2 class="section-title">LockOn</h2>
           <p class="case-tag">Aerospace &amp; defense consultancy</p>
           <p class="case-copy">
@@ -156,13 +154,15 @@
             <li><span>[Result — e.g. faster page load / Core Web Vitals]</span></li>
             <li><span>[Result — e.g. client quote or outcome]</span></li>
           </ul>
-          <a class="btn btn-ghost" href="#contact">Discuss your project</a>
+          <a class="btn btn-ghost-on-dark" href="#contact">Discuss your project</a>
         </div>
       </div>
     </section>
 
     <!-- WHY US / CREDIBILITY -->
     <section class="why-us" id="why">
+      <div class="parallax-layer blob-b" data-speed="0.2" aria-hidden="true"></div>
+      <div class="why-us-fade" aria-hidden="true"></div>
       <div class="wrap">
         <p class="eyebrow reveal">Why us</p>
         <h2 class="section-title reveal">We build like the site is the pitch.</h2>
@@ -191,11 +191,14 @@
 
     <!-- CONTACT -->
     <section class="contact" id="contact">
-      <div class="parallax-layer blob-b" data-speed="0.2" aria-hidden="true"></div>
+      <video class="section-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+        <source src="assets/video/grey-marketing-banner.mp4" type="video/mp4">
+      </video>
+      <div class="contact-fade" aria-hidden="true"></div>
       <div class="wrap contact-inner">
-        <p class="eyebrow reveal">Contact</p>
+        <p class="eyebrow eyebrow-on-dark reveal">Contact</p>
         <h2 class="section-title reveal">Let's build something that converts.</h2>
-        <p class="why-sub reveal">
+        <p class="why-sub why-sub-on-dark reveal">
           Tell us a bit about your business and what you're running ads to. We'll reply within one business day.
         </p>
 
@@ -219,7 +222,7 @@
 
           <div class="contact-direct reveal">
             <p class="contact-direct-label">Prefer email or a call?</p>
-            <a class="contact-link" href="mailto:hello@optyxstudio.com">hello@optyxstudio.com</a>
+            <a class="contact-link" href="mailto:optyxstudio@gmail.com">optyxstudio@gmail.com</a>
             <a class="contact-whatsapp" href="https://wa.me/447495260785" target="_blank" rel="noopener">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z" fill="#25d366"/>
@@ -230,6 +233,19 @@
             <a class="btn btn-primary contact-book" href="#contact">Book a call</a>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- CLOSING CTA -->
+    <section class="closing" id="closing">
+      <video class="section-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+        <source src="assets/video/gradient-bg.mp4" type="video/mp4">
+      </video>
+      <div class="closing-overlay" aria-hidden="true"></div>
+      <div class="wrap">
+        <p class="eyebrow reveal">Optyx Studio</p>
+        <h2 class="closing-title reveal">Websites built to convert. Let's build yours.</h2>
+        <a class="btn btn-primary reveal" href="#contact">Book a call</a>
       </div>
     </section>
 

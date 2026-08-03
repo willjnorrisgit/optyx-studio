@@ -49,10 +49,10 @@ if (intro) {
     });
 
     const letterCount = intro.querySelectorAll('.intro-letter').length;
-    const letterStepMs = 65;
-    const letterAnimMs = 700;
-    const holdMs = 550;
-    const exitMs = 900;
+    const letterStepMs = 150;
+    const letterAnimMs = 1400;
+    const holdMs = 1300;
+    const exitMs = 1400;
     const totalDelay = letterCount * letterStepMs + letterAnimMs + holdMs;
 
     window.setTimeout(() => {
@@ -87,25 +87,14 @@ if (navToggle && mobileNav) {
 }
 
 // ---------------------------------------------------
-// Hero video — skip autoplay under reduced motion (freezes on first frame)
+// Background videos — skip autoplay under reduced motion (freezes on
+// first frame instead of looping).
 // ---------------------------------------------------
-const heroVideo = document.querySelector('.hero-video');
-if (heroVideo && prefersReducedMotion) {
-  heroVideo.removeAttribute('autoplay');
-  heroVideo.pause();
-}
-
-// ---------------------------------------------------
-// Header theme — swaps from light-on-dark (over the video hero) to
-// dark-on-light (over the rest of the page) as the user scrolls past it.
-// ---------------------------------------------------
-const siteHeader = document.querySelector('.site-header');
-const heroSection = document.getElementById('hero');
-
-function updateHeaderTheme() {
-  if (!siteHeader || !heroSection) return;
-  const threshold = heroSection.offsetHeight - siteHeader.offsetHeight;
-  siteHeader.classList.toggle('is-light', window.scrollY > threshold);
+if (prefersReducedMotion) {
+  document.querySelectorAll('.section-video').forEach((video) => {
+    video.removeAttribute('autoplay');
+    video.pause();
+  });
 }
 
 // ---------------------------------------------------
@@ -181,7 +170,6 @@ function runScrollFx() {
   revealEls.forEach((el) => updateReveal(el, vh));
   parallaxEls.forEach((el) => updateParallax(el, vh));
   kenburnsEls.forEach((el) => updateKenBurns(el, vh));
-  updateHeaderTheme();
   ticking = false;
 }
 
@@ -209,7 +197,7 @@ if (contactForm && formNote) {
   contactForm.addEventListener('submit', (event) => {
     event.preventDefault();
     formNote.textContent =
-      "Thanks — this form isn't connected yet. Please email hello@optyxstudio.com in the meantime.";
+      "Thanks — this form isn't connected yet. Please email optyxstudio@gmail.com in the meantime.";
     contactForm.reset();
   });
 }
