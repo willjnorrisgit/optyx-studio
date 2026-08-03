@@ -17,7 +17,7 @@
   --accent-dim: rgba(227, 179, 65, 0.14);
 
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Bricolage Grotesque', var(--font);
+  --font-display: 'Big Shoulders Stencil Display', var(--font);
 
   --wrap: 1180px;
   --gutter: clamp(1.25rem, 4vw, 3rem);
@@ -32,6 +32,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -111,9 +112,10 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .intro-primary {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: clamp(2.75rem, 9vw, 6rem);
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
   color: #fff;
 }
 
@@ -199,10 +201,21 @@ ul { list-style: none; margin: 0; padding: 0; }
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.78);
+  --header-fg: #fff;
+  --header-bg: rgba(0, 0, 0, 0.25);
+  --header-border: rgba(255, 255, 255, 0.16);
+  color: var(--header-fg);
+  background: var(--header-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--header-border);
+  transition: background 0.5s var(--ease-cinematic), border-color 0.5s var(--ease-cinematic), color 0.5s var(--ease-cinematic);
+}
+
+.site-header.is-light {
+  --header-fg: var(--text);
+  --header-bg: rgba(255, 255, 255, 0.78);
+  --header-border: var(--border);
 }
 
 .header-inner {
@@ -215,12 +228,8 @@ ul { list-style: none; margin: 0; padding: 0; }
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.85rem;
+  color: inherit;
 }
-
-.logo-mark { flex-shrink: 0; }
-.logo-mark .mark-ring { fill: none; stroke: var(--text); stroke-width: 2.5; }
-.logo-mark .mark-dot { fill: var(--accent-bright); }
 
 .logo-word {
   display: flex;
@@ -230,20 +239,23 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .logo-primary {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.7rem;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  font-size: 1.85rem;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: inherit;
 }
 
 .logo-sub {
   font-weight: 600;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   letter-spacing: 0.3em;
-  color: var(--text-dim);
+  color: inherit;
+  opacity: 0.6;
   margin-top: 0.35em;
 }
 
-.logo-small .logo-primary { font-size: 1.3rem; }
+.logo-small .logo-primary { font-size: 1.35rem; }
 
 .site-nav ul {
   display: flex;
@@ -254,10 +266,11 @@ ul { list-style: none; margin: 0; padding: 0; }
 .site-nav a {
   font-size: 0.92rem;
   font-weight: 500;
-  color: var(--text-dim);
-  transition: color 0.2s var(--ease);
+  color: inherit;
+  opacity: 0.75;
+  transition: opacity 0.2s var(--ease);
 }
-.site-nav a:hover { color: var(--text); }
+.site-nav a:hover { opacity: 1; }
 
 .nav-toggle {
   display: none;
@@ -267,16 +280,18 @@ ul { list-style: none; margin: 0; padding: 0; }
   width: 40px;
   height: 40px;
   background: transparent;
-  border: 1px solid var(--border-strong);
+  border: 1px solid currentColor;
+  opacity: 0.85;
   border-radius: 8px;
   cursor: pointer;
+  color: inherit;
 }
 .nav-toggle span {
   display: block;
   width: 16px;
   height: 1.5px;
   margin-inline: auto;
-  background: var(--text);
+  background: currentColor;
   transition: transform 0.25s var(--ease), opacity 0.25s var(--ease);
 }
 .nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
@@ -291,7 +306,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .mobile-nav.open {
   max-height: 260px;
-  border-top-color: var(--border);
+  border-top-color: var(--header-border);
 }
 .mobile-nav ul {
   display: flex;
@@ -302,7 +317,8 @@ ul { list-style: none; margin: 0; padding: 0; }
 .mobile-nav a {
   font-size: 1rem;
   font-weight: 500;
-  color: var(--text-dim);
+  color: inherit;
+  opacity: 0.8;
 }
 
 /* ---------------------------------------------------
@@ -316,14 +332,6 @@ ul { list-style: none; margin: 0; padding: 0; }
   border-radius: 50%;
   filter: blur(90px);
   will-change: transform;
-}
-
-.hero-glow {
-  inset: -20% -10% auto -10%;
-  height: 70%;
-  border-radius: 0;
-  background: radial-gradient(ellipse at 50% 0%, var(--accent-dim), transparent 65%);
-  filter: none;
 }
 
 .blob-a {
@@ -345,19 +353,70 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 /* ---------------------------------------------------
-   Hero
+   Hero — full-bleed looping video, wordmark only
 --------------------------------------------------- */
 
 .hero {
   position: relative;
-  min-height: 88vh;
-  display: flex;
-  align-items: center;
+  height: 100vh;
+  min-height: 560px;
   overflow: hidden;
-  padding-block: 6rem 4rem;
+  background: #000;
 }
 
-.hero-inner { position: relative; z-index: 1; max-width: 920px; }
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% 50%;
+  z-index: 0;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 32%),
+    linear-gradient(to bottom, transparent 55%, var(--bg) 100%);
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+}
+
+.hero-logo {
+  position: absolute;
+  top: 34%;
+  left: var(--gutter);
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  color: #fff;
+}
+
+.hero-logo-primary {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.75rem, 6vw, 4.75rem);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.hero-logo-sub {
+  margin-top: 0.6em;
+  font-weight: 600;
+  font-size: clamp(0.7rem, 1.1vw, 0.85rem);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
 
 .eyebrow {
   font-size: 0.82rem;
@@ -366,27 +425,6 @@ ul { list-style: none; margin: 0; padding: 0; }
   text-transform: uppercase;
   color: var(--accent);
   margin: 0 0 1.25rem;
-}
-
-.hero-headline {
-  font-size: clamp(2.4rem, 6.2vw, 5.4rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.04;
-  margin: 0 0 1.75rem;
-}
-
-.hero-sub {
-  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
-  color: var(--text-dim);
-  max-width: 46ch;
-  margin: 0 0 2.5rem;
-}
-
-.hero-cta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
 }
 
 /* ---------------------------------------------------
@@ -654,6 +692,43 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
 
 .contact-book { margin-top: 0.5rem; }
 
+.contact-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.contact-whatsapp:hover { color: #25d366; }
+.contact-whatsapp svg { width: 22px; height: 22px; flex-shrink: 0; color: #25d366; }
+
+/* ---------------------------------------------------
+   Floating WhatsApp button — persistent across the whole page
+--------------------------------------------------- */
+
+.fab-whatsapp {
+  position: fixed;
+  right: clamp(1rem, 3vw, 1.75rem);
+  bottom: clamp(1rem, 3vw, 1.75rem);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.fab-whatsapp svg { width: 28px; height: 28px; }
+.fab-whatsapp:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+}
+
 /* ---------------------------------------------------
    Footer
 --------------------------------------------------- */
@@ -700,9 +775,14 @@ section { padding-block: clamp(4rem, 8vw, 8rem); }
   .nav-toggle { display: flex; }
 
   .header-inner { height: 76px; }
-  .logo-mark { width: 34px; height: 34px; }
-  .logo-primary { font-size: 1.35rem; }
-  .logo-sub { font-size: 0.58rem; }
+  .logo-primary { font-size: 1.4rem; }
+  .logo-sub { font-size: 0.56rem; }
 
-  .blob-a, .blob-b { width: 280px; height: 280px; filter: blur(70px); }
+  .hero-logo { top: 30%; }
+
+  .blob-a { top: -80px; right: -60px; width: 280px; height: 280px; filter: blur(70px); }
+  .blob-b { top: -60px; left: -70px; width: 260px; height: 260px; filter: blur(70px); }
+
+  .fab-whatsapp { width: 52px; height: 52px; }
+  .fab-whatsapp svg { width: 25px; height: 25px; }
 }

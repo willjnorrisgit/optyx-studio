@@ -87,6 +87,28 @@ if (navToggle && mobileNav) {
 }
 
 // ---------------------------------------------------
+// Hero video — skip autoplay under reduced motion (freezes on first frame)
+// ---------------------------------------------------
+const heroVideo = document.querySelector('.hero-video');
+if (heroVideo && prefersReducedMotion) {
+  heroVideo.removeAttribute('autoplay');
+  heroVideo.pause();
+}
+
+// ---------------------------------------------------
+// Header theme — swaps from light-on-dark (over the video hero) to
+// dark-on-light (over the rest of the page) as the user scrolls past it.
+// ---------------------------------------------------
+const siteHeader = document.querySelector('.site-header');
+const heroSection = document.getElementById('hero');
+
+function updateHeaderTheme() {
+  if (!siteHeader || !heroSection) return;
+  const threshold = heroSection.offsetHeight - siteHeader.offsetHeight;
+  siteHeader.classList.toggle('is-light', window.scrollY > threshold);
+}
+
+// ---------------------------------------------------
 // Cinematic scroll engine — fade in/out, parallax, Ken Burns.
 // Everything is a direct function of scroll position (no CSS transition
 // racing a moving target), eased through the cubic-bezier curves above.
@@ -159,6 +181,7 @@ function runScrollFx() {
   revealEls.forEach((el) => updateReveal(el, vh));
   parallaxEls.forEach((el) => updateParallax(el, vh));
   kenburnsEls.forEach((el) => updateKenBurns(el, vh));
+  updateHeaderTheme();
   ticking = false;
 }
 
@@ -169,13 +192,11 @@ function onScrollOrResize() {
   }
 }
 
-if (revealEls.length || parallaxEls.length || kenburnsEls.length) {
-  window.addEventListener('scroll', onScrollOrResize, { passive: true });
-  window.addEventListener('resize', onScrollOrResize);
-  runScrollFx();
-  // re-run once fonts/layout settle, so initial positions are accurate
-  window.addEventListener('load', runScrollFx);
-}
+window.addEventListener('scroll', onScrollOrResize, { passive: true });
+window.addEventListener('resize', onScrollOrResize);
+runScrollFx();
+// re-run once fonts/layout settle, so initial positions are accurate
+window.addEventListener('load', runScrollFx);
 
 // ---------------------------------------------------
 // Contact form — placeholder handling until a real backend

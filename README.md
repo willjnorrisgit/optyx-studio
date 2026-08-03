@@ -9,20 +9,27 @@ Plain HTML/CSS/JS, no build step, deploy-ready for GitHub Pages.
 ## Structure
 
 ```
-index.html          Page markup
-css/styles.css       All styling
-js/main.js           Mobile nav, scroll reveals, contact form handling
-assets/favicon.svg   Logo mark used as the browser favicon
+index.html                        Page markup
+css/styles.css                    All styling
+js/main.js                        Intro, cinematic scroll engine, nav, contact form
+assets/favicon.svg                Browser tab icon
+assets/video/abstract-art-03.mp4  Hero background loop (crossfaded for a seamless restart)
 ```
 
 ## Local development
 
 No build step required — open `index.html` directly in a browser, or serve
-the folder locally:
+the folder locally. The hero background video needs a server that supports
+HTTP Range requests (required for `<video>` playback) — Python's built-in
+`http.server` does **not** support this and will leave the hero video stuck
+on a black frame locally. Use something like:
 
 ```
-python3 -m http.server
+npx http-server
 ```
+
+GitHub Pages supports Range requests correctly, so this only affects local
+preview, not the deployed site.
 
 ## Deploying to GitHub Pages
 
@@ -46,3 +53,8 @@ material before launch:
   sending anywhere. Wire it up to a form backend (e.g. Formspree, Netlify
   Forms) via the `contactForm` element in `index.html` / `js/main.js`.
 - **Contact email** — `hello@optyxstudio.com` is a placeholder address.
+- **WhatsApp icon** — the glyph used for the floating button and the
+  contact-section link (`.fab-whatsapp`, `.contact-whatsapp` in
+  `index.html`) is a hand-built simplified icon, not the official WhatsApp
+  brand asset. Swap in the official SVG if pixel-perfect brand accuracy
+  matters. The number itself (`wa.me/447495260785`) is live.
