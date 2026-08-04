@@ -40,6 +40,15 @@
 
   <a class="skip-link" href="#main">Skip to content</a>
 
+  <!-- Fixed mask-wipe overlay used for every black/off-white section transition -->
+  <div class="wipe-overlay" id="wipeOverlay" aria-hidden="true"></div>
+
+  <!-- Persistent drifting badge — connective thread through the whole scroll -->
+  <svg class="badge-drift" id="badgeDrift" viewBox="0 0 32 32" aria-hidden="true">
+    <circle class="badge-drift-ring" cx="16" cy="16" r="11"/>
+    <circle class="badge-drift-dot" cx="24" cy="8" r="3.5"/>
+  </svg>
+
   <header class="site-header" id="top">
     <div class="wrap header-inner">
       <nav class="site-nav" aria-label="Primary">
@@ -67,7 +76,7 @@
   <main id="main">
 
     <!-- HERO -->
-    <section class="hero" id="hero">
+    <section class="hero" id="hero" data-theme="dark">
       <video class="section-video hero-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
         <source src="assets/video/abstract-art-03.mp4" type="video/mp4">
       </video>
@@ -81,7 +90,7 @@
     </section>
 
     <!-- WHAT WE DO -->
-    <section class="services" id="services">
+    <section class="services" id="services" data-theme="light">
       <div class="parallax-layer blob-a" data-speed="0.2" aria-hidden="true"></div>
       <div class="wrap">
         <p class="eyebrow reveal">What we do</p>
@@ -120,49 +129,20 @@
       </div>
     </section>
 
-    <!-- CASE STUDY -->
-    <section class="case-study" id="work">
+    <!-- PUNCTUATION BEAT — dot waves -->
+    <section class="beat beat-dots" data-theme="dark">
       <video class="section-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
         <source src="assets/video/dot-waves.mp4" type="video/mp4">
       </video>
-      <div class="case-study-fade" aria-hidden="true"></div>
-      <div class="wrap case-study-inner">
-        <div class="case-media reveal">
-          <div class="kenburns-frame">
-            <div class="kenburns-media screenshot-placeholder" role="img" aria-label="LockOn website screenshot placeholder">
-              <svg width="48" height="48" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-                <rect x="5" y="8" width="30" height="24" rx="3" stroke="currentColor" stroke-width="1.5"/>
-                <line x1="5" y1="15" x2="35" y2="15" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M10 27 L16 20 L21 25 L26 18 L31 27" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span>Screenshot coming soon</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="case-content reveal">
-          <p class="eyebrow eyebrow-on-dark">Case study</p>
-          <h2 class="section-title">LockOn</h2>
-          <p class="case-tag">Aerospace &amp; defense consultancy</p>
-          <p class="case-copy">
-            LockOn needed a site that could hold its own in a room full of engineers and program managers — technical
-            credibility first, sales pitch second. We rebuilt it from the ground up: a sharper structure, clearer
-            positioning, and a design language that reads as precise rather than flashy.
-          </p>
-          <ul class="case-results">
-            <li><span>[Result — e.g. increase in qualified inquiries]</span></li>
-            <li><span>[Result — e.g. faster page load / Core Web Vitals]</span></li>
-            <li><span>[Result — e.g. client quote or outcome]</span></li>
-          </ul>
-          <a class="btn btn-ghost-on-dark" href="#contact">Discuss your project</a>
-        </div>
+      <div class="beat-bigtype parallax-layer" data-speed="0.12" aria-hidden="true">Precision</div>
+      <div class="wrap beat-inner reveal" data-speed="0.4">
+        <p class="beat-caption">Every pixel earns its place.</p>
       </div>
     </section>
 
     <!-- WHY US / CREDIBILITY -->
-    <section class="why-us" id="why">
+    <section class="why-us" id="why" data-theme="light">
       <div class="parallax-layer blob-b" data-speed="0.2" aria-hidden="true"></div>
-      <div class="why-us-fade" aria-hidden="true"></div>
       <div class="wrap">
         <p class="eyebrow reveal">Why us</p>
         <h2 class="section-title reveal">We build like the site is the pitch.</h2>
@@ -189,16 +169,55 @@
       </div>
     </section>
 
-    <!-- CONTACT -->
-    <section class="contact" id="contact">
+    <!-- PUNCTUATION BEAT — grey marketing banner -->
+    <section class="beat beat-banner" data-theme="dark">
       <video class="section-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
         <source src="assets/video/grey-marketing-banner.mp4" type="video/mp4">
       </video>
-      <div class="contact-fade" aria-hidden="true"></div>
-      <div class="wrap contact-inner">
-        <p class="eyebrow eyebrow-on-dark reveal">Contact</p>
+      <div class="beat-bigtype parallax-layer" data-speed="0.12" aria-hidden="true">Momentum</div>
+      <div class="wrap beat-inner reveal" data-speed="0.4">
+        <p class="beat-caption">Built to perform under real ad spend.</p>
+      </div>
+    </section>
+
+    <!-- CASE STUDY + CONTACT — off-white, runs to the footer -->
+    <section class="final-section" data-theme="light">
+      <div class="wrap case-study-inner" id="work">
+        <div class="case-media reveal">
+          <div class="kenburns-frame">
+            <div class="kenburns-media screenshot-placeholder" role="img" aria-label="LockOn website screenshot placeholder">
+              <svg width="48" height="48" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <rect x="5" y="8" width="30" height="24" rx="3" stroke="currentColor" stroke-width="1.5"/>
+                <line x1="5" y1="15" x2="35" y2="15" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M10 27 L16 20 L21 25 L26 18 L31 27" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Screenshot coming soon</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="case-content reveal">
+          <p class="eyebrow">Case study</p>
+          <h2 class="section-title">LockOn</h2>
+          <p class="case-tag">Aerospace &amp; defense consultancy</p>
+          <p class="case-copy">
+            LockOn needed a site that could hold its own in a room full of engineers and program managers — technical
+            credibility first, sales pitch second. We rebuilt it from the ground up: a sharper structure, clearer
+            positioning, and a design language that reads as precise rather than flashy.
+          </p>
+          <ul class="case-results">
+            <li><span>[Result — e.g. increase in qualified inquiries]</span></li>
+            <li><span>[Result — e.g. faster page load / Core Web Vitals]</span></li>
+            <li><span>[Result — e.g. client quote or outcome]</span></li>
+          </ul>
+          <a class="btn btn-ghost" href="#contact">Discuss your project</a>
+        </div>
+      </div>
+
+      <div class="wrap contact-block" id="contact">
+        <p class="eyebrow reveal">Contact</p>
         <h2 class="section-title reveal">Let's build something that converts.</h2>
-        <p class="why-sub why-sub-on-dark reveal">
+        <p class="why-sub reveal">
           Tell us a bit about your business and what you're running ads to. We'll reply within one business day.
         </p>
 
@@ -236,24 +255,11 @@
       </div>
     </section>
 
-    <!-- CLOSING CTA -->
-    <section class="closing" id="closing">
-      <video class="section-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
-        <source src="assets/video/gradient-bg.mp4" type="video/mp4">
-      </video>
-      <div class="closing-overlay" aria-hidden="true"></div>
-      <div class="wrap">
-        <p class="eyebrow reveal">Optyx Studio</p>
-        <h2 class="closing-title reveal">Websites built to convert. Let's build yours.</h2>
-        <a class="btn btn-primary reveal" href="#contact">Book a call</a>
-      </div>
-    </section>
-
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer" data-theme="light">
     <div class="wrap footer-inner">
-      <a class="logo logo-small" href="#top" aria-label="Optyx Studio home">
+      <a class="logo" href="#top" aria-label="Optyx Studio home">
         <span class="logo-word">
           <span class="logo-primary">Optyx</span>
           <span class="logo-sub">Studio</span>

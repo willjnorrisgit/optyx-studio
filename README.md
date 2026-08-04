@@ -11,25 +11,54 @@ Plain HTML/CSS/JS, no build step, deploy-ready for GitHub Pages.
 ```
 index.html                                Page markup
 css/styles.css                            All styling
-js/main.js                                Intro, cinematic scroll engine, nav, contact form
+js/main.js                                Intro, mask-wipe/scroll engine, nav, contact form
 assets/favicon.svg                        Browser tab icon
 assets/video/abstract-art-03.mp4          Hero background loop
-assets/video/dot-waves.mp4                Case study section background loop
-assets/video/grey-marketing-banner.mp4    Contact section background loop
-assets/video/gradient-bg.mp4              Closing section background loop (ping-pong loop — see below)
+assets/video/dot-waves.mp4                First punctuation-beat section background loop
+assets/video/grey-marketing-banner.mp4    Second punctuation-beat section background loop
 ```
 
-All four background videos were re-encoded from the originals to fix a
-visible jump at the loop restart:
+Both background videos were re-encoded from the originals with a 0.4s
+cross-dissolve baked into the loop point, to fix a visible jump at the
+loop restart.
 
-- `abstract-art-03`, `dot-waves`, `grey-marketing-banner` — a 0.4s
-  cross-dissolve was baked into the loop point.
-- `gradient-bg` — its motion doesn't cycle (a continuously morphing
-  gradient, not a rotating object), so a cross-dissolve still showed a
-  visible blend between two different-looking frames. It's encoded as a
-  **ping-pong loop** instead (forward + time-reversed copy, 20s total) —
-  the loop point is mathematically exact since the reversed copy always
-  ends back at frame 0.
+## Page structure & motion system
+
+The page alternates black and off-white sections all the way down, with
+the two video sections acting as short "punctuation beat" pauses rather
+than places to linger:
+
+```
+Hero (black, video)
+  → Services "What we do" (off-white, holds)
+    → Beat: dot-waves (black, video, short)
+      → Why us (off-white, holds)
+        → Beat: grey-marketing-banner (black, video, short)
+          → Case study + Contact (off-white, runs to the footer)
+            → Footer (off-white — no colour of its own)
+```
+
+Every black/off-white boundary uses a **scroll-scrubbed circular mask
+wipe** (`#wipeOverlay` in `index.html`, driven by `js/main.js`) instead of
+a crossfade: a fixed, full-viewport overlay whose `clip-path: circle()`
+radius is driven directly by scroll position through an eased
+(`--ease-cinematic`) cubic-bezier curve, growing from the bottom of the
+viewport to fully cover it. Zone boundaries are computed from the actual
+section `offsetTop`/`offsetHeight` at load/resize, so they always span
+exactly the scroll range where the raw section seam would otherwise be
+visible — and are clamped so adjacent zones never overlap (short sections
+can otherwise cause a zone to start mid-progress instead of at 0%).
+
+A small ring-and-dot badge (`#badgeDrift`) drifts continuously across the
+screen for the entire scroll — position, scale and rotation are all a
+function of `scrollY` — and inverts its stroke colour between white and
+black depending on the current section's theme, using the same zone data
+as the wipe.
+
+The two video sections layer a near-static background video, a large
+faint background word drifting slowly, and a foreground caption drifting
+faster, for a sense of depth (`.beat-bigtype` / `.beat-inner[data-speed]`
+in `index.html`).
 
 ## Local development
 
@@ -61,6 +90,9 @@ material before launch:
 - **Case study screenshot** — `.screenshot-placeholder` in the "Work"
   section. Replace with an `<img>` of the real LockOn site.
 - **Case study results** — bracketed metrics in the case study section.
+- **Beat captions** — "Every pixel earns its place." / "Built to perform
+  under real ad spend." (`.beat-caption` in `index.html`) are placeholder
+  microcopy for the two video punctuation sections.
 - **Testimonials** — quotes and attribution in the "Why us" section.
 - **Awards / credibility badges** — placeholder badges in the "Why us"
   section.

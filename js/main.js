@@ -98,9 +98,97 @@ if (prefersReducedMotion) {
 }
 
 // ---------------------------------------------------
-// Cinematic scroll engine — fade in/out, parallax, Ken Burns.
-// Everything is a direct function of scroll position (no CSS transition
-// racing a moving target), eased through the cubic-bezier curves above.
+// Theme zones — every [data-theme] section boundary becomes a
+// scroll-scrubbed mask-wipe zone. Recomputed on load/resize since it
+// depends on layout (offsetTop).
+// ---------------------------------------------------
+const themeSections = Array.from(document.querySelectorAll('[data-theme]'));
+const wipeOverlay = document.getElementById('wipeOverlay');
+let wipeZones = [];
+
+function computeWipeZones() {
+  wipeZones = [];
+  const vh = window.innerHeight;
+  for (let i = 0; i < themeSections.length - 1; i++) {
+    const current = themeSections[i];
+    const next = themeSections[i + 1];
+    if (current.dataset.theme === next.dataset.theme) continue;
+    // Span the wipe across exactly the scroll range where the raw section
+    // seam would otherwise be visible in the viewport: from the moment the
+    // outgoing section's bottom edge first appears, to the moment the
+    // incoming section fully fills the viewport.
+    let seamStart = current.offsetTop + current.offsetHeight - vh;
+    const seamEnd = next.offsetTop;
+    // Sections shorter than one viewport (the punctuation beats) can have
+    // their entry and exit seams overlap — clamp so zones never overlap,
+    // otherwise the later zone would jump-start mid-progress instead of at 0.
+    const prev = wipeZones[wipeZones.length - 1];
+    if (prev) seamStart = Math.max(seamStart, prev.end);
+    wipeZones.push({ start: seamStart, end: seamEnd, toTheme: next.dataset.theme });
+  }
+}
+
+function themeAt(y) {
+  for (const zone of wipeZones) {
+    if (y >= zone.start && y <= zone.end) {
+      const t = (y - zone.start) / (zone.end - zone.start);
+      const fromTheme = zone.toTheme === 'light' ? 'dark' : 'light';
+      return t < 0.5 ? fromTheme : zone.toTheme;
+    }
+  }
+  let current = themeSections[0];
+  for (const s of themeSections) {
+    if (s.offsetTop <= y + 100) current = s; else break;
+  }
+  return current ? current.dataset.theme : 'dark';
+}
+
+function updateWipe() {
+  if (!wipeOverlay) return;
+  if (prefersReducedMotion) {
+    wipeOverlay.style.display = 'none';
+    return;
+  }
+  const y = window.scrollY;
+  const active = wipeZones.find((zone) => y >= zone.start && y <= zone.end);
+  if (!active) {
+    wipeOverlay.style.display = 'none';
+    return;
+  }
+  const t = clamp01((y - active.start) / (active.end - active.start));
+  const eased = easeCinematic(t);
+  wipeOverlay.style.display = 'block';
+  wipeOverlay.style.background = active.toTheme === 'light' ? 'var(--bg)' : 'var(--bg-black)';
+  wipeOverlay.style.clipPath = `circle(${(eased * 150).toFixed(1)}% at 50% 100%)`;
+}
+
+// ---------------------------------------------------
+// Persistent drifting badge — connective thread through the whole
+// scroll sequence, colour-inverting against whatever theme is current.
+// ---------------------------------------------------
+const badgeDrift = document.getElementById('badgeDrift');
+
+if (badgeDrift && prefersReducedMotion) {
+  badgeDrift.style.display = 'none';
+}
+
+function updateBadgeDrift() {
+  if (!badgeDrift || prefersReducedMotion) return;
+  const y = window.scrollY;
+  const dx = Math.sin(y * 0.0015) * 220;
+  const dy = Math.cos(y * 0.0011) * 140;
+  const rot = y * 0.06;
+  const scale = 0.85 + Math.sin(y * 0.002) * 0.25;
+  badgeDrift.style.transform =
+    `translate(calc(-50% + ${dx.toFixed(1)}px), calc(-50% + ${dy.toFixed(1)}px)) rotate(${rot.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+  badgeDrift.classList.toggle('on-light', themeAt(y) === 'light');
+}
+
+// ---------------------------------------------------
+// Cinematic scroll engine — fade in/out, parallax, Ken Burns, depth
+// drift. Everything is a direct function of scroll position (no CSS
+// transition racing a moving target), eased through the cubic-bezier
+// curves above.
 // ---------------------------------------------------
 const revealEls = document.querySelectorAll('.reveal');
 const parallaxEls = document.querySelectorAll('.parallax-layer');
@@ -132,8 +220,18 @@ function updateReveal(el, vh) {
     rise = -(1 - eased) * 28;
   }
 
+  // optional depth-drift: foreground content in the video beats moves
+  // at its own speed, distinct from the near-static background video
+  // and the slower-drifting big background type.
+  let drift = 0;
+  const speed = parseFloat(el.dataset.speed || '0');
+  if (speed && !isSmallScreen()) {
+    const centerOffset = rect.top + rect.height / 2 - vh / 2;
+    drift = -centerOffset * speed;
+  }
+
   el.style.opacity = opacity.toFixed(3);
-  el.style.transform = `translateY(${rise.toFixed(2)}px)`;
+  el.style.transform = `translateY(${(rise + drift).toFixed(2)}px)`;
 }
 
 function updateParallax(el, vh) {
@@ -170,6 +268,8 @@ function runScrollFx() {
   revealEls.forEach((el) => updateReveal(el, vh));
   parallaxEls.forEach((el) => updateParallax(el, vh));
   kenburnsEls.forEach((el) => updateKenBurns(el, vh));
+  updateWipe();
+  updateBadgeDrift();
   ticking = false;
 }
 
@@ -180,11 +280,20 @@ function onScrollOrResize() {
   }
 }
 
+function onResize() {
+  computeWipeZones();
+  onScrollOrResize();
+}
+
+computeWipeZones();
 window.addEventListener('scroll', onScrollOrResize, { passive: true });
-window.addEventListener('resize', onScrollOrResize);
+window.addEventListener('resize', onResize);
 runScrollFx();
-// re-run once fonts/layout settle, so initial positions are accurate
-window.addEventListener('load', runScrollFx);
+// re-run once fonts/layout settle, so initial positions/zones are accurate
+window.addEventListener('load', () => {
+  computeWipeZones();
+  runScrollFx();
+});
 
 // ---------------------------------------------------
 // Contact form — placeholder handling until a real backend
