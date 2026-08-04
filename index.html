@@ -77,9 +77,20 @@
 
     <!-- HERO -->
     <section class="hero" id="hero" data-theme="dark">
+      <!-- Always-on base layer: works everywhere, and is the automatic
+           fallback if the Spline scene below is skipped (mobile / reduced
+           motion) or fails to load for any reason. -->
       <video class="section-video hero-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
         <source src="assets/video/abstract-art-03.mp4" type="video/mp4">
       </video>
+      <!-- Live 3D scene, desktop only (see js/main.js) — a continuously
+           rendered scene has no loop point, so no restart stutter. Its
+           defining script is only fetched when we decide to use it. -->
+      <spline-viewer
+        class="hero-spline"
+        url="https://prod.spline.design/zMNdfoZpJhVlgMdI/scene.splinecode"
+        aria-hidden="true"
+      ></spline-viewer>
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="wrap hero-inner">
         <h1 class="hero-logo">

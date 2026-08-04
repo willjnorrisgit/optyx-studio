@@ -98,6 +98,48 @@ if (prefersReducedMotion) {
 }
 
 // ---------------------------------------------------
+// Hero Spline scene — desktop only. A live scene renders continuously,
+// so unlike the looping video it has no restart point to stutter at.
+// The hero-video stays playing underneath as the fallback: it's only
+// visually covered once the Spline canvas actually renders, so any
+// failure (blocked script, slow network, WebGL unsupported) just leaves
+// the video showing, with no extra handling needed for that case beyond
+// the defensive checks below.
+// ---------------------------------------------------
+const heroSpline = document.querySelector('.hero-spline');
+
+if (heroSpline) {
+  if (isSmallScreen() || prefersReducedMotion) {
+    heroSpline.remove();
+  } else {
+    let settled = false;
+    const fallbackTimer = window.setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        heroSpline.remove();
+      }
+    }, 6000);
+
+    heroSpline.addEventListener('load', () => {
+      settled = true;
+      window.clearTimeout(fallbackTimer);
+    });
+
+    const splineScript = document.createElement('script');
+    splineScript.type = 'module';
+    splineScript.src = 'https://unpkg.com/@splinetool/viewer/build/spline-viewer.js';
+    splineScript.onerror = () => {
+      if (!settled) {
+        settled = true;
+        window.clearTimeout(fallbackTimer);
+        heroSpline.remove();
+      }
+    };
+    document.head.appendChild(splineScript);
+  }
+}
+
+// ---------------------------------------------------
 // Theme zones — every [data-theme] section boundary becomes a
 // scroll-scrubbed mask-wipe zone. Recomputed on load/resize since it
 // depends on layout (offsetTop).
