@@ -187,20 +187,23 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   });
 
   // ---------------------------------------------------
-  // Hero — pinned in place while the video scrolls/scrubs underneath.
-  // The wordmark stays stationary for most of the pinned range and only
-  // fades + releases in its final portion, right as the next section
-  // takes over.
+  // Hero — pinned in place while the video scrolls/scrubs underneath. The
+  // wordmark visibly separates from it: the video retreats upward for the
+  // whole pinned range, while the badge drops steadily downward across
+  // that same range (opposite directions, so the gap between them grows),
+  // fading out only in the final portion as the next section takes over.
   // ---------------------------------------------------
   const hero = document.getElementById('hero');
   const heroLogo = document.querySelector('.hero-logo');
   const heroVideo = hero ? hero.querySelector('.hero-video') : null;
+  let heroTl = null;
 
   if (hero && heroLogo) {
     const pinDistance = isSmallScreen() ? '60%' : '100%';
-    const videoTravel = isSmallScreen() ? window.innerHeight * 0.06 : window.innerHeight * 0.1;
+    const videoTravel = isSmallScreen() ? window.innerHeight * 0.16 : window.innerHeight * 0.24;
+    const badgeDrop = isSmallScreen() ? window.innerHeight * 0.32 : window.innerHeight * 0.42;
 
-    const heroTl = gsap.timeline({
+    heroTl = gsap.timeline({
       scrollTrigger: {
         trigger: hero,
         start: 'top top',
@@ -214,9 +217,12 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
     if (heroVideo) {
       heroTl.to(heroVideo, { y: -videoTravel, ease: 'none', duration: 1 }, 0);
     }
-    // badge/wordmark: untouched (pinned in place) for the first 65% of the
-    // range, then fades + lifts away in the last 35% as section two arrives
-    heroTl.to(heroLogo, { autoAlpha: 0, yPercent: -20, ease: 'none', duration: 0.35 }, 0.65);
+    // badge: drops steadily for the entire pinned range (opposite direction
+    // to the video, so the separation is visible throughout), only fading
+    // out in the final 40% once it's dropped well clear of the wordmark's
+    // resting position
+    heroTl.to(heroLogo, { y: badgeDrop, ease: 'none', duration: 1 }, 0);
+    heroTl.to(heroLogo, { autoAlpha: 0, ease: 'none', duration: 0.4 }, 0.6);
   }
 
   // ---------------------------------------------------
@@ -224,9 +230,9 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   // 1 = off-white), recomputed every frame from one function of scrollY and
   // written to a CSS custom property + the fixed field's background-colour.
   // There are no discrete per-section triggers: `lightnessAt()` is one
-  // smoothstep-interpolated curve across the entire page, and an extra
-  // per-frame lag on top of it keeps the drift itself gradual rather than
-  // snapping straight to the target the instant scroll position changes.
+  // piecewise smoothstep-interpolated curve across the entire page —
+  // gradualness comes purely from the ramp zones spanning real scroll
+  // distance, see buildBgKeyframes() below.
   // ---------------------------------------------------
   const bgField = document.getElementById('bgField');
 
@@ -238,25 +244,49 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
     let bgKeyframes = [];
     let bgLightness = themeSections[0] && themeSections[0].dataset.theme === 'light' ? 1 : 0;
 
-    // Each section gets a genuine flat hold (not just a single instant at its
-    // midpoint) so every colour reads as settled for a comparable stretch —
-    // dark "beat" sections included, not just the taller light ones either
-    // side of them. The ramp at each boundary is sized off the SHORTER of
-    // the two flanking sections, so a short section never has its whole
-    // height eaten by transition before it gets to hold anything.
+    // Every boundary's transition happens entirely within the OUTGOING
+    // section's own tail, finishing before the next section's box even
+    // begins (no ramp bleeding into the incoming section) — so a heading
+    // never becomes readable while the background underneath it is still
+    // mid-blend. Most sections are safe by construction (their content is
+    // vertically centred, nowhere near the boundary); final-section is the
+    // one exception (its content starts right at its own top) so it gets
+    // an extra lead distance on top of the normal ramp. Hero is pinned and
+    // fully opaque throughout, so its ramp can only be visible once the pin
+    // actually releases — anchored to the pin's own real end position
+    // rather than hero's own height, or the whole blend would happen
+    // hidden behind it and the cut to the next section would look abrupt.
     function buildBgKeyframes() {
       const stops = [];
-      const rampFraction = 0.22;
+      const rampFraction = 0.24;
+      const leadBuffer = 420;
+      const postPinRamp = 420;
+      const heroEnd = heroTl && heroTl.scrollTrigger ? heroTl.scrollTrigger.end : null;
+
       themeSections.forEach((s, i) => {
         const value = s.dataset.theme === 'light' ? 1 : 0;
         const prev = themeSections[i - 1];
         const next = themeSections[i + 1];
-        const rampIn = prev ? Math.min(s.offsetHeight, prev.offsetHeight) * rampFraction : 0;
-        const rampOut = next ? Math.min(s.offsetHeight, next.offsetHeight) * rampFraction : 0;
-        const plateauStart = s.offsetTop + rampIn;
-        const plateauEnd = Math.max(plateauStart, s.offsetTop + s.offsetHeight - rampOut);
+        let plateauStart = s.offsetTop;
+        let plateauEnd = s.offsetTop + s.offsetHeight;
+
+        if (prev && prev.id === 'hero' && heroEnd !== null) {
+          plateauStart = heroEnd + postPinRamp;
+        }
+
+        if (s.id === 'hero' && heroEnd !== null) {
+          // pinned + fully opaque throughout: nothing behind it is visible
+          // until release, so stay dark for the whole pin and let the ramp
+          // run visibly afterwards, into the next section's own approach
+          plateauEnd = heroEnd;
+        } else if (next && next.dataset.theme !== s.dataset.theme) {
+          const rampWidth = Math.min(s.offsetHeight, next.offsetHeight) * rampFraction;
+          const extraLead = next.classList.contains('final-section') ? leadBuffer : 0;
+          plateauEnd = Math.max(plateauStart, s.offsetTop + s.offsetHeight - rampWidth - extraLead);
+        }
+
         stops.push({ y: plateauStart, value });
-        stops.push({ y: plateauEnd, value });
+        stops.push({ y: Math.max(plateauStart, plateauEnd), value });
       });
       bgKeyframes = stops;
     }

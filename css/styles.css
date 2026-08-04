@@ -468,8 +468,8 @@ body::after {
 
 .hero-video {
   object-position: 62% 50%;
-  top: -10%;
-  height: 120%;
+  top: -25%;
+  height: 150%;
 }
 
 .hero-overlay {
@@ -617,29 +617,13 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 --------------------------------------------------- */
 
 .beat {
-  min-height: 78vh;
+  min-height: 130vh;
   display: flex;
   align-items: center;
   overflow: hidden;
   background: var(--bg-black);
   color: var(--text-on-dark);
   text-align: center;
-}
-
-.beat-bigtype {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: clamp(4rem, 17vw, 13rem);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.07);
-  white-space: nowrap;
 }
 
 .beat-inner {
@@ -982,8 +966,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 
   .hero-logo { top: 30%; }
 
-  .services, .why-us { min-height: 110vh; }
-  .beat { min-height: 60vh; }
+  .services, .why-us, .beat { min-height: 110vh; }
 
   .service-row { grid-template-columns: auto 1fr; gap: 1.1rem; }
   .service-num { font-size: 1.75rem; }

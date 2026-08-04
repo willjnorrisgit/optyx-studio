@@ -14,28 +14,30 @@ css/styles.css                            All styling
 js/main.js                                Intro, GSAP/ScrollTrigger/Lenis motion system, nav, contact form
 assets/favicon.svg                        Browser tab icon
 assets/video/abstract-art-03.mp4          Hero background loop
-assets/video/dot-waves.mp4                First punctuation-beat section background loop
-assets/video/grey-marketing-banner.mp4    Second punctuation-beat section background loop
+assets/video/dot-waves.mp4                Precision beat section background loop
+assets/video/grey-marketing-banner.mp4    Unused — kept in assets/, no longer referenced (see below)
 ```
 
-All three background videos loop seamlessly: `dot-waves` and
-`grey-marketing-banner` were re-encoded from the originals with a 0.4s
-cross-dissolve baked into the loop point to fix a visible jump at the
-restart; `abstract-art-03` is trimmed to its best rotation-match point
-with a built-in 0.25s crossfade blending its own tail into its own head.
+`dot-waves` and `abstract-art-03` loop seamlessly: `dot-waves` was
+re-encoded from the original with a 0.4s cross-dissolve baked into the
+loop point to fix a visible jump at the restart; `abstract-art-03` is
+trimmed to its best rotation-match point with a built-in 0.25s crossfade
+blending its own tail into its own head.
 
 ## Page structure & motion system
 
-The page alternates black and off-white sections all the way down, with
-the two video sections acting as short "punctuation beat" pauses rather
-than places to linger:
+The page alternates black and off-white sections all the way down. Both
+"beat" sections now hold as long as the light sections either side of
+them (`min-height: 130vh`, same as `.services`/`.why-us`) rather than
+being a short, cramped pause — the second one is now a video-free, quiet
+dark hold rather than a repeat of the same treatment:
 
 ```
-Hero (black, video)
+Hero (black, video, pinned)
   → Services "What we do" (off-white, holds)
-    → Beat: dot-waves (black, video, short)
+    → Beat: dot-waves (black, video, holds)
       → Why us (off-white, holds)
-        → Beat: grey-marketing-banner (black, video, short)
+        → Beat: quiet dark hold, no video
           → Case study + Contact (off-white, runs to the footer)
             → Footer (off-white — no colour of its own)
 ```
@@ -54,21 +56,30 @@ its `background-color` is driven by a single continuous function of
 `scrollY` (`lightnessAt()` in `js/main.js`), written every frame to both
 the field itself and a `--bg-mix` CSS custom property (0 = black, 1 =
 off-white) — there are no discrete per-section triggers. Each theme
-section contributes a genuine flat *plateau* at its own target value (not
-just an instant at its midpoint), with a smoothstep ramp between adjacent
-plateaus sized off the shorter of the two flanking sections — so a short
-"beat" section still gets a comfortable, comparable hold instead of the
-ramps from its taller neighbours eating almost all of it. Sections turn
-transparent only once `body.motion-active` is present, so the
-reduced-motion fallback is just each section's own solid CSS colour,
-unchanged.
+section contributes a genuine flat *plateau* at its own target value, and
+every colour change happens entirely within the **outgoing** section's own
+tail (`buildBgKeyframes()`) — never bleeding into the section that follows
+— so a heading is never revealed while the background underneath it is
+still mid-blend. `final-section` is the one section whose content sits
+right at its own top edge rather than being vertically centred (unlike
+every other section), so its incoming boundary gets an extra lead
+distance on top of the normal ramp. The hero is a special case: it's
+pinned and fully opaque throughout, so its own ramp is anchored to the
+pin's *actual* release point (`heroTl.scrollTrigger.end`) rather than its
+own height — otherwise the whole blend would happen hidden behind the
+pinned, opaque hero and the cut to the next section would look abrupt
+instead of like a blend. Sections turn transparent only once
+`body.motion-active` is present, so the reduced-motion fallback is just
+each section's own solid CSS colour, unchanged.
 
 **Header & hero.** The header hides on scroll-down and reappears on
 scroll-up via a single master `ScrollTrigger` (also driving the badge, see
 below). The hero is **pinned** (`pin: true`) for one extra viewport height
-of scroll: the video keeps scrubbing/translating underneath while the
-wordmark stays stationary, then fades and lifts away only in the pin's
-final ~35%, right as the next section takes over.
+of scroll, and the wordmark visibly separates from the video during it:
+the video retreats upward for the whole pinned range while the badge drops
+steadily downward across that same range (opposite directions, so the gap
+between them grows continuously), fading out only in the pin's final 40%
+once it's dropped well clear, right as the next section takes over.
 
 **Typography.** Headings/eyebrows/captions are split into words at
 runtime (`splitWords()` in `js/main.js`). Each word's opacity/position is
@@ -87,11 +98,10 @@ also get a gradient text-clip (applied per-word-span, since
 `inline-block` word wrappers needed for the reveal).
 
 **Depth & images.** Any element with `data-speed` (the background blobs,
-`.beat-bigtype`, `.beat-inner`, the case-study image) gets an independent
-scroll-scrubbed parallax offset, scaled down for mobile via
-`gsap.matchMedia()`. The case-study image also gets a `clip-path` mask
-reveal on scroll-in plus a continuous subtle scale/drift while it's in
-view.
+`.beat-inner`, the case-study image) gets an independent scroll-scrubbed
+parallax offset, scaled down for mobile via `gsap.matchMedia()`. The
+case-study image also gets a `clip-path` mask reveal on scroll-in plus a
+continuous subtle scale/drift while it's in view.
 
 **Services.** The "What we do" list (`.services-list` in `index.html`) is
 a numbered list — large ghost numerals (01/02/03), thin dividers, a
@@ -147,7 +157,11 @@ material before launch:
 - **Case study results** — bracketed metrics in the case study section.
 - **Beat captions** — "Every pixel earns its place." / "Built to perform
   under real ad spend." (`.beat-caption` in `index.html`) are placeholder
-  microcopy for the two video punctuation sections.
+  microcopy for the two dark punctuation sections.
+- **`assets/video/grey-marketing-banner.mp4`** — no longer referenced
+  anywhere (the second beat section is now a quiet video-free hold); the
+  file is still in the repo in case it's wanted again, safe to delete
+  otherwise.
 - **Testimonials** — quotes and attribution in the "Why us" section.
 - **Awards / credibility badges** — placeholder badges in the "Why us"
   section.
