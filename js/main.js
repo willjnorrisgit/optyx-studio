@@ -149,6 +149,13 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   // ---------------------------------------------------
   const themeSections = Array.from(document.querySelectorAll('[data-theme]'));
 
+  // Shared between the background-rhythm ramps and the video-edge fades
+  // below, so a video's own fade always finishes exactly where bgField's
+  // colour ramp begins (never overlapping it) — see both usages.
+  const RAMP_FRACTION = 0.24;
+  const LEAD_BUFFER = 420;
+  const POST_PIN_RAMP = 420;
+
   // ---------------------------------------------------
   // Header — hides on scroll down, reappears on scroll up.
   // ---------------------------------------------------
@@ -221,23 +228,41 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   }
 
   // ---------------------------------------------------
-  // Video-section edges — a video is fully opaque and covers its whole
-  // section, so without this it just pops in/out as a hard-edged box the
-  // instant its section enters/leaves the viewport, no matter how smooth
-  // the surrounding background-colour transition is. Fading its opacity in
-  // over the entry and out over the exit reveals bgField's own (already
-  // colour-matched, continuously blending) field underneath instead.
+  // Video-section edges — sequenced strictly after/before bgField's own
+  // colour ramps, not concurrent with them: the background finishes
+  // darkening completely first, THEN the video fades in; on the way out,
+  // the video fades out completely first, THEN the background starts
+  // lightening. A video is fully opaque and covers its whole section, so
+  // without this it just pops in/out as a hard-edged box no matter how
+  // smooth the colour transition either side of it is — and overlapping
+  // the two just trades one seam for a different, subtler one. Using the
+  // same RAMP_FRACTION as buildBgKeyframes for the boundary guarantees the
+  // video's fade-out finishes exactly where bgField's own ramp begins.
   // ---------------------------------------------------
   document.querySelectorAll('.beat .section-video').forEach((video) => {
     const section = video.closest('.beat');
+    const index = themeSections.indexOf(section);
+    const next = themeSections[index + 1];
+
+    const outgoingRampWidth = () =>
+      next && next.dataset.theme !== section.dataset.theme
+        ? Math.min(section.offsetHeight, next.offsetHeight) * RAMP_FRACTION
+        : 0;
+
     // one timeline, not two independent scrubbed tweens — two separate
     // ScrollTriggers fighting over the same property each render their own
     // "at rest" value outside their own active range, and whichever was
     // created last wins regardless of actual scroll position
     gsap
-      .timeline({ scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 0.3 } })
-      .fromTo(video, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.15 }, 0)
-      .to(video, { opacity: 0, ease: 'none', duration: 0.15 }, 0.85);
+      .timeline({
+        scrollTrigger: {
+          start: () => section.offsetTop,
+          end: () => section.offsetTop + section.offsetHeight - outgoingRampWidth(),
+          scrub: 0.3,
+        },
+      })
+      .fromTo(video, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.2 }, 0)
+      .to(video, { opacity: 0, ease: 'none', duration: 0.25 }, 0.75);
   });
 
   // ---------------------------------------------------
@@ -273,9 +298,6 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
     // hidden behind it and the cut to the next section would look abrupt.
     function buildBgKeyframes() {
       const stops = [];
-      const rampFraction = 0.24;
-      const leadBuffer = 420;
-      const postPinRamp = 420;
       const heroEnd = heroTl && heroTl.scrollTrigger ? heroTl.scrollTrigger.end : null;
 
       themeSections.forEach((s, i) => {
@@ -286,7 +308,7 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
         let plateauEnd = s.offsetTop + s.offsetHeight;
 
         if (prev && prev.id === 'hero' && heroEnd !== null) {
-          plateauStart = heroEnd + postPinRamp;
+          plateauStart = heroEnd + POST_PIN_RAMP;
         }
 
         if (s.id === 'hero' && heroEnd !== null) {
@@ -295,8 +317,8 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
           // run visibly afterwards, into the next section's own approach
           plateauEnd = heroEnd;
         } else if (next && next.dataset.theme !== s.dataset.theme) {
-          const rampWidth = Math.min(s.offsetHeight, next.offsetHeight) * rampFraction;
-          const extraLead = next.classList.contains('final-section') ? leadBuffer : 0;
+          const rampWidth = Math.min(s.offsetHeight, next.offsetHeight) * RAMP_FRACTION;
+          const extraLead = next.classList.contains('final-section') ? LEAD_BUFFER : 0;
           plateauEnd = Math.max(plateauStart, s.offsetTop + s.offsetHeight - rampWidth - extraLead);
         }
 
@@ -378,7 +400,10 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
 
   // Scroll-driven: each word ramps from low to full opacity as the block
   // scrolls through its own viewport window — tied directly to scroll
-  // progress (scrub), not a fixed-duration one-shot animation.
+  // progress (scrub), not a fixed-duration one-shot animation. Starts once
+  // the block is already about half-scrolled into view (rather than the
+  // instant it peeks in at the very bottom) and finishes soon after, so it
+  // reads as prompt rather than a long, slow reveal.
   const mobileType = isSmallScreen();
   document.querySelectorAll('.eyebrow, .section-title, .why-sub, .beat-caption').forEach((el) => {
     const words = splitWords(el);
@@ -392,7 +417,7 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
         filter: 'blur(0px)',
         ease: 'premiumEase',
         stagger: { each: mobileType ? 0.025 : 0.04, from: 'start' },
-        scrollTrigger: { trigger: el, start: 'top 92%', end: 'top 42%', scrub: 0.4 },
+        scrollTrigger: { trigger: el, start: 'top 55%', end: 'top 18%', scrub: 0.4 },
       }
     );
   });

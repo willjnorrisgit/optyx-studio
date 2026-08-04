@@ -88,21 +88,30 @@ section takes over.
 **Video-section edges.** A `<video>` is fully opaque and fills its whole
 section, so left alone it just pops in and out as a hard-edged box the
 instant its section enters or leaves the viewport — no matter how smooth
-`bgField`'s own colour transition is either side of it. Every
-`.beat video` fades in over the first ~15% of its section's transit and
-back out over the last ~15% (one timeline per video, scrubbed off the
-section itself), revealing `bgField`'s own already-colour-matched, already
-continuously-blending field underneath instead of a hard content cutoff.
-This is what actually fixes the "boxy" seams around the video sections —
-`bgField` alone was never the problem, since it was already one continuous
-field; the videos sitting on top of it, appearing/disappearing with no
-transition of their own, were.
+`bgField`'s own colour transition is either side of it. Every `.beat
+video`'s fade is *sequenced*, not concurrent with `bgField`'s own ramp:
+the background finishes darkening completely first, then the video fades
+in; on the way out, the video fades out completely first, then the
+background starts lightening. The video's own trigger end is computed
+with the exact same `RAMP_FRACTION` used by `buildBgKeyframes()`, so its
+fade-out always finishes exactly where the background's ramp begins —
+concurrent fades just trade one seam for a subtler one, so the two now
+never overlap at all.
+
+**Off-white tone.** `--bg` is a cool, slightly blue-grey `#f0f1f3`
+("silvery") rather than a warm cream, to read as one family with the
+videos' own grey/blue tones and the metallic-blue accent — not a separate,
+warmer palette.
 
 **Typography.** Headings/eyebrows/captions are split into words at
 runtime (`splitWords()` in `js/main.js`). Each word's opacity/position is
 tied directly to scroll progress through the block (`scrub`, not a
-fixed-duration one-shot), with a slight upward move and a blur-to-sharp
-finish, eased with one shared curve (`premiumEase`,
+fixed-duration one-shot) — the window is `top 55%` to `top 18%`, i.e. it
+only starts once the block is already about half-scrolled into view
+(rather than the instant it peeks in at the very bottom of the screen)
+and finishes soon after, so it reads as prompt rather than a long, slow
+reveal — with a slight upward move and a blur-to-sharp finish, eased with
+one shared curve (`premiumEase`,
 `cubic-bezier(0.25, 0.1, 0.25, 1)`, hand-solved and registered since GSAP's
 free build has no CustomEase — used for every scroll-reveal animation
 site-wide). The original text is preserved via `aria-label` on the
