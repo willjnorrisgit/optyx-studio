@@ -36,6 +36,21 @@ if (intro) {
 }
 
 // ---------------------------------------------------
+// Header logo — back to top, replaying the intro. Clearing the
+// session flag and doing a full navigation (rather than an in-page
+// scroll) is what lets the intro's own load-time logic run again exactly
+// as it does on a first visit, including its reduced-motion check.
+// ---------------------------------------------------
+const homeLogo = document.getElementById('homeLogo');
+if (homeLogo) {
+  homeLogo.addEventListener('click', (event) => {
+    event.preventDefault();
+    try { sessionStorage.removeItem('optyxIntroPlayed'); } catch (e) {}
+    window.location.href = window.location.pathname;
+  });
+}
+
+// ---------------------------------------------------
 // Mobile nav toggle
 // ---------------------------------------------------
 const navToggle = document.getElementById('navToggle');
@@ -112,6 +127,7 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   }
 
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    if (link.id === 'homeLogo') return; // handled separately — full navigation, not an in-page scroll
     link.addEventListener('click', (event) => {
       const id = link.getAttribute('href');
       if (!id || id === '#') return;
@@ -129,26 +145,14 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   });
 
   // ---------------------------------------------------
-  // Theme lookup — shared by the persistent badge and (indirectly) the
-  // background-rhythm zones below.
+  // Theme sections — feeds the background-rhythm keyframes below.
   // ---------------------------------------------------
   const themeSections = Array.from(document.querySelectorAll('[data-theme]'));
 
-  function themeAt(y) {
-    let current = themeSections[0];
-    for (const section of themeSections) {
-      if (section.offsetTop <= y + window.innerHeight * 0.5) current = section;
-      else break;
-    }
-    return current ? current.dataset.theme : 'dark';
-  }
-
   // ---------------------------------------------------
-  // Header — hides on scroll down, reappears on scroll up. Persistent
-  // drifting badge rides the same master scroll listener.
+  // Header — hides on scroll down, reappears on scroll up.
   // ---------------------------------------------------
   const header = document.querySelector('.site-header');
-  const badgeDrift = document.getElementById('badgeDrift');
   let headerHidden = false;
 
   function updateHeader(y, direction) {
@@ -165,24 +169,11 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
     });
   }
 
-  function updateBadgeDrift(y) {
-    if (!badgeDrift) return;
-    const dx = Math.sin(y * 0.0015) * 220;
-    const dy = Math.cos(y * 0.0011) * 140;
-    const rot = y * 0.06;
-    const scale = 0.85 + Math.sin(y * 0.002) * 0.25;
-    badgeDrift.style.transform =
-      `translate(calc(-50% + ${dx.toFixed(1)}px), calc(-50% + ${dy.toFixed(1)}px)) rotate(${rot.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
-    badgeDrift.classList.toggle('on-light', themeAt(y) === 'light');
-  }
-
   ScrollTrigger.create({
     start: 0,
     end: () => document.documentElement.scrollHeight - window.innerHeight,
     onUpdate(self) {
-      const y = self.scroll();
-      updateHeader(y, self.direction);
-      updateBadgeDrift(y);
+      updateHeader(self.scroll(), self.direction);
     },
   });
 
@@ -216,6 +207,10 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
 
     if (heroVideo) {
       heroTl.to(heroVideo, { y: -videoTravel, ease: 'none', duration: 1 }, 0);
+      // fades out approaching release, revealing the (already dark) bgField
+      // instead of the video's own opaque content cutting off hard right at
+      // the pin boundary
+      heroTl.to(heroVideo, { opacity: 0, ease: 'none', duration: 0.3 }, 0.7);
     }
     // badge: drops steadily for the entire pinned range (opposite direction
     // to the video, so the separation is visible throughout), only fading
@@ -224,6 +219,26 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
     heroTl.to(heroLogo, { y: badgeDrop, ease: 'none', duration: 1 }, 0);
     heroTl.to(heroLogo, { autoAlpha: 0, ease: 'none', duration: 0.4 }, 0.6);
   }
+
+  // ---------------------------------------------------
+  // Video-section edges — a video is fully opaque and covers its whole
+  // section, so without this it just pops in/out as a hard-edged box the
+  // instant its section enters/leaves the viewport, no matter how smooth
+  // the surrounding background-colour transition is. Fading its opacity in
+  // over the entry and out over the exit reveals bgField's own (already
+  // colour-matched, continuously blending) field underneath instead.
+  // ---------------------------------------------------
+  document.querySelectorAll('.beat .section-video').forEach((video) => {
+    const section = video.closest('.beat');
+    // one timeline, not two independent scrubbed tweens — two separate
+    // ScrollTriggers fighting over the same property each render their own
+    // "at rest" value outside their own active range, and whichever was
+    // created last wins regardless of actual scroll position
+    gsap
+      .timeline({ scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 0.3 } })
+      .fromTo(video, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.15 }, 0)
+      .to(video, { opacity: 0, ease: 'none', duration: 0.15 }, 0.85);
+  });
 
   // ---------------------------------------------------
   // Background rhythm — a single continuous scroll-linked value (0 = black,
@@ -547,9 +562,6 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   );
 
   window.addEventListener('load', () => ScrollTrigger.refresh());
-} else {
-  const badgeDrift = document.getElementById('badgeDrift');
-  if (badgeDrift) badgeDrift.style.display = 'none';
 }
 
 // ---------------------------------------------------

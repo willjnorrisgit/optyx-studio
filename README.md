@@ -73,13 +73,30 @@ instead of like a blend. Sections turn transparent only once
 each section's own solid CSS colour, unchanged.
 
 **Header & hero.** The header hides on scroll-down and reappears on
-scroll-up via a single master `ScrollTrigger` (also driving the badge, see
-below). The hero is **pinned** (`pin: true`) for one extra viewport height
-of scroll, and the wordmark visibly separates from the video during it:
-the video retreats upward for the whole pinned range while the badge drops
-steadily downward across that same range (opposite directions, so the gap
-between them grows continuously), fading out only in the pin's final 40%
-once it's dropped well clear, right as the next section takes over.
+scroll-up via a master `ScrollTrigger`. Its logo (`#homeLogo`) is a normal
+in-page link to `#top` for no-JS/reduced-motion visitors; with JS it also
+clears the intro's session flag and does a full navigation back to the
+page root, so clicking it replays the intro from scratch exactly as a
+first visit would. The hero itself is **pinned** (`pin: true`) for one
+extra viewport height of scroll, and the wordmark visibly separates from
+the video during it: the video retreats upward for the whole pinned range
+while the badge drops steadily downward across that same range (opposite
+directions, so the gap between them grows continuously), fading out only
+in the pin's final 40% once it's dropped well clear, right as the next
+section takes over.
+
+**Video-section edges.** A `<video>` is fully opaque and fills its whole
+section, so left alone it just pops in and out as a hard-edged box the
+instant its section enters or leaves the viewport — no matter how smooth
+`bgField`'s own colour transition is either side of it. Every
+`.beat video` fades in over the first ~15% of its section's transit and
+back out over the last ~15% (one timeline per video, scrubbed off the
+section itself), revealing `bgField`'s own already-colour-matched, already
+continuously-blending field underneath instead of a hard content cutoff.
+This is what actually fixes the "boxy" seams around the video sections —
+`bgField` alone was never the problem, since it was already one continuous
+field; the videos sitting on top of it, appearing/disappearing with no
+transition of their own, were.
 
 **Typography.** Headings/eyebrows/captions are split into words at
 runtime (`splitWords()` in `js/main.js`). Each word's opacity/position is
@@ -115,11 +132,6 @@ the cursor within a proximity radius, `power3.out` while tracking,
 `premiumEase` on release) plus a press-scale, replacing the plain CSS
 hover/`:active` for those users. Touch devices get none of that and rely
 on the CSS hover/press states and the scroll-reveal entrance alone.
-
-A small ring-and-dot badge (`#badgeDrift`) drifts continuously across the
-screen for the entire scroll — position, scale and rotation are all a
-function of scroll position — and inverts its stroke colour between white
-and black depending on the current section's theme.
 
 A subtle fixed grain texture (`body::after`) sits above everything at low
 opacity with `mix-blend-mode: overlay` for a bit of non-distracting depth;
