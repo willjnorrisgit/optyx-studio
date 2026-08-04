@@ -18,9 +18,11 @@ assets/video/dot-waves.mp4                First punctuation-beat section backgro
 assets/video/grey-marketing-banner.mp4    Second punctuation-beat section background loop
 ```
 
-Both background videos were re-encoded from the originals with a 0.4s
-cross-dissolve baked into the loop point, to fix a visible jump at the
-loop restart.
+All three background videos loop seamlessly: `dot-waves` and
+`grey-marketing-banner` were re-encoded from the originals with a 0.4s
+cross-dissolve baked into the loop point to fix a visible jump at the
+restart; `abstract-art-03` is trimmed to its best rotation-match point
+with a built-in 0.25s crossfade blending its own tail into its own head.
 
 ## Page structure & motion system
 
@@ -29,7 +31,7 @@ the two video sections acting as short "punctuation beat" pauses rather
 than places to linger:
 
 ```
-Hero (black, Spline 3D scene on desktop / video fallback)
+Hero (black, video)
   → Services "What we do" (off-white, holds)
     → Beat: dot-waves (black, video, short)
       → Why us (off-white, holds)
@@ -59,31 +61,6 @@ The two video sections layer a near-static background video, a large
 faint background word drifting slowly, and a foreground caption drifting
 faster, for a sense of depth (`.beat-bigtype` / `.beat-inner[data-speed]`
 in `index.html`).
-
-## Hero background: Spline scene + video fallback
-
-The hero background is a live [Spline](https://spline.design) 3D scene
-(`<spline-viewer>` in `index.html`) on desktop, since a continuously
-rendered scene has no loop point to stutter at — unlike the video, which
-needed a re-encode to fix a jump at its restart. `abstract-art-03.mp4`
-stays as the hero video and is always present and autoplaying as the
-base layer; the Spline scene, when it loads, simply renders on top of it.
-
-`js/main.js` decides what to do on load:
-
-- **Small screens or `prefers-reduced-motion`** — the `<spline-viewer>`
-  element is removed immediately and its defining script
-  (`@splinetool/viewer`, loaded from unpkg) is never fetched at all, so
-  there's no wasted bandwidth/GPU cost on devices it isn't meant for.
-- **Otherwise** — the viewer script is loaded, with three independent
-  fallback paths back to the video, so a broken Spline embed never
-  leaves the hero blank: the script tag's `onerror`, a 6s timeout if the
-  scene never fires its `load` event, and — most simply — the fact that
-  an unrendered `<spline-viewer>` canvas is transparent, so the playing
-  video shows straight through it even if none of the JS fallbacks fire.
-
-The element is `pointer-events: none` so it behaves purely as a
-background — visitors can't click, drag, or orbit the scene.
 
 ## Local development
 
