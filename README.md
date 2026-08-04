@@ -49,30 +49,42 @@ behind `prefers-reduced-motion`: when it's set, none of the below runs and
 every section just shows its own static CSS background/opacity — a plain,
 fully-legible fallback with zero extra branching required.
 
-**Background rhythm.** Instead of a per-section colour toggle, a fixed
-field (`#bgField`) sits behind everything and its `background-color` is
-crossfaded by scroll-scrubbed GSAP tweens. Each black/off-white boundary
-gets its own tween spanning roughly one-and-a-half sections' worth of
-scroll distance, centred on (not locked to) the actual section seam, so
-the shift feels like it flows through the content rather than snapping at
-a hard line — see the `bgField` loop in `js/main.js`. Sections turn
-transparent only once `body.motion-active` is present (i.e. once JS/motion
-is confirmed running), so the reduced-motion fallback is just each
-section's own solid CSS colour, unchanged.
+**Background rhythm.** A fixed field (`#bgField`) sits behind everything;
+its `background-color` is driven by a single continuous function of
+`scrollY` (`lightnessAt()` in `js/main.js`), written every frame to both
+the field itself and a `--bg-mix` CSS custom property (0 = black, 1 =
+off-white) — there are no discrete per-section triggers. Each theme
+section contributes a genuine flat *plateau* at its own target value (not
+just an instant at its midpoint), with a smoothstep ramp between adjacent
+plateaus sized off the shorter of the two flanking sections — so a short
+"beat" section still gets a comfortable, comparable hold instead of the
+ramps from its taller neighbours eating almost all of it. Sections turn
+transparent only once `body.motion-active` is present, so the
+reduced-motion fallback is just each section's own solid CSS colour,
+unchanged.
 
 **Header & hero.** The header hides on scroll-down and reappears on
 scroll-up via a single master `ScrollTrigger` (also driving the badge, see
-below). The hero wordmark follows the scroll with a parallax offset and
-fades out over exactly one hero-height of scroll (`scrub: true` tied to
-the hero section), rather than a fixed-duration animation.
+below). The hero is **pinned** (`pin: true`) for one extra viewport height
+of scroll: the video keeps scrubbing/translating underneath while the
+wordmark stays stationary, then fades and lifts away only in the pin's
+final ~35%, right as the next section takes over.
 
 **Typography.** Headings/eyebrows/captions are split into words at
-runtime (`splitWords()` in `js/main.js`) and revealed with a slight upward
-move plus a blur-to-sharp finish, staggered per word. The original text is
-preserved via `aria-label` on the element, with the visual split spans
-marked `aria-hidden`, so screen readers get the plain sentence and nothing
-is ever hidden from crawlers — the un-split plain text is what's in the
-DOM until JS runs, and remains the whole story under reduced motion.
+runtime (`splitWords()` in `js/main.js`). Each word's opacity/position is
+tied directly to scroll progress through the block (`scrub`, not a
+fixed-duration one-shot), with a slight upward move and a blur-to-sharp
+finish, eased with one shared curve (`premiumEase`,
+`cubic-bezier(0.25, 0.1, 0.25, 1)`, hand-solved and registered since GSAP's
+free build has no CustomEase — used for every scroll-reveal animation
+site-wide). The original text is preserved via `aria-label` on the
+element, with the visual split spans marked `aria-hidden`, so screen
+readers get the plain sentence and nothing is ever hidden from crawlers —
+the un-split plain text is what's in the DOM until JS runs, and remains
+the whole story under reduced motion. `.section-title` and `.beat-caption`
+also get a gradient text-clip (applied per-word-span, since
+`background-clip: text` doesn't reliably composite through the nested
+`inline-block` word wrappers needed for the reveal).
 
 **Depth & images.** Any element with `data-speed` (the background blobs,
 `.beat-bigtype`, `.beat-inner`, the case-study image) gets an independent
@@ -81,11 +93,18 @@ scroll-scrubbed parallax offset, scaled down for mobile via
 reveal on scroll-in plus a continuous subtle scale/drift while it's in
 view.
 
-**Cards & buttons.** On `(hover: hover) and (pointer: fine)` devices only,
-service cards, testimonials and the direct-contact panel get a
-cursor-follow 3D tilt + lift via `gsap.quickTo`; touch devices get none of
-that and rely on the scroll-reveal entrance alone. Buttons keep their
-existing CSS hover lift and get a plain `:active` press-scale.
+**Services.** The "What we do" list (`.services-list` in `index.html`) is
+a numbered list — large ghost numerals (01/02/03), thin dividers, a
+staggered reveal via `ScrollTrigger.batch` — rather than an icon card
+grid.
+
+**Cards & buttons.** On `(hover: hover) and (pointer: fine)` devices only:
+testimonials and the direct-contact panel get a cursor-follow 3D tilt +
+lift via `gsap.quickTo`; every `.btn` gets a magnetic hover (pulls toward
+the cursor within a proximity radius, `power3.out` while tracking,
+`premiumEase` on release) plus a press-scale, replacing the plain CSS
+hover/`:active` for those users. Touch devices get none of that and rely
+on the CSS hover/press states and the scroll-reveal entrance alone.
 
 A small ring-and-dot badge (`#badgeDrift`) drifts continuously across the
 screen for the entire scroll — position, scale and rotation are all a

@@ -78,6 +78,31 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
   document.body.classList.add('motion-active');
 
+  // ---------------------------------------------------
+  // One consistent easing curve for every scroll-reveal animation
+  // site-wide. GSAP's free build has no CustomEase, so it's solved by
+  // hand (Newton-Raphson) and registered once as a named ease.
+  // ---------------------------------------------------
+  function makeCubicBezier(x1, y1, x2, y2) {
+    const A = (a1, a2) => 1 - 3 * a2 + 3 * a1;
+    const B = (a1, a2) => 3 * a2 - 6 * a1;
+    const C = (a1) => 3 * a1;
+    const calcBezier = (t, a1, a2) => ((A(a1, a2) * t + B(a1, a2)) * t + C(a1)) * t;
+    const getSlope = (t, a1, a2) => 3 * A(a1, a2) * t * t + 2 * B(a1, a2) * t + C(a1);
+    return function easeFn(x) {
+      if (x <= 0) return 0;
+      if (x >= 1) return 1;
+      let t = x;
+      for (let i = 0; i < 6; i++) {
+        const slope = getSlope(t, x1, x2);
+        if (Math.abs(slope) < 1e-6) break;
+        t -= (calcBezier(t, x1, x2) - x) / slope;
+      }
+      return calcBezier(t, y1, y2);
+    };
+  }
+  gsap.registerEase('premiumEase', makeCubicBezier(0.25, 0.1, 0.25, 1));
+
   let lenis = null;
   if (window.Lenis) {
     lenis = new Lenis({ autoRaf: false, duration: 1.1 });
@@ -135,7 +160,7 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
       yPercent: shouldHide ? -100 : 0,
       autoAlpha: shouldHide ? 0 : 1,
       duration: 0.5,
-      ease: 'power3.out',
+      ease: 'premiumEase',
       overwrite: true,
     });
   }
@@ -162,27 +187,46 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   });
 
   // ---------------------------------------------------
-  // Hero logo — scroll-scrubbed parallax follow + fade as the hero
-  // gives way to the next section.
+  // Hero — pinned in place while the video scrolls/scrubs underneath.
+  // The wordmark stays stationary for most of the pinned range and only
+  // fades + releases in its final portion, right as the next section
+  // takes over.
   // ---------------------------------------------------
   const hero = document.getElementById('hero');
   const heroLogo = document.querySelector('.hero-logo');
+  const heroVideo = hero ? hero.querySelector('.hero-video') : null;
 
   if (hero && heroLogo) {
-    gsap.to(heroLogo, {
-      yPercent: -55,
-      autoAlpha: 0,
-      ease: 'none',
-      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
+    const pinDistance = isSmallScreen() ? '60%' : '100%';
+    const videoTravel = isSmallScreen() ? window.innerHeight * 0.06 : window.innerHeight * 0.1;
+
+    const heroTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: hero,
+        start: 'top top',
+        end: `+=${pinDistance}`,
+        scrub: 1,
+        pin: true,
+        anticipatePin: 1,
+      },
     });
+
+    if (heroVideo) {
+      heroTl.to(heroVideo, { y: -videoTravel, ease: 'none', duration: 1 }, 0);
+    }
+    // badge/wordmark: untouched (pinned in place) for the first 65% of the
+    // range, then fades + lifts away in the last 35% as section two arrives
+    heroTl.to(heroLogo, { autoAlpha: 0, yPercent: -20, ease: 'none', duration: 0.35 }, 0.65);
   }
 
   // ---------------------------------------------------
-  // Background rhythm — a fixed field behind everything, crossfaded
-  // continuously via scroll-scrubbed colour tweens. Each transition spans
-  // roughly one-and-a-half sections' worth of scroll distance, centred on
-  // (not locked to) the actual section seam, so the shift feels like it
-  // flows through the content rather than snapping at a hard boundary.
+  // Background rhythm — a single continuous scroll-linked value (0 = black,
+  // 1 = off-white), recomputed every frame from one function of scrollY and
+  // written to a CSS custom property + the fixed field's background-colour.
+  // There are no discrete per-section triggers: `lightnessAt()` is one
+  // smoothstep-interpolated curve across the entire page, and an extra
+  // per-frame lag on top of it keeps the drift itself gradual rather than
+  // snapping straight to the target the instant scroll position changes.
   // ---------------------------------------------------
   const bgField = document.getElementById('bgField');
 
@@ -190,37 +234,69 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
     const rootStyle = getComputedStyle(document.documentElement);
     const colorDark = rootStyle.getPropertyValue('--bg-black').trim();
     const colorLight = rootStyle.getPropertyValue('--bg').trim();
-    const colorOf = (theme) => (theme === 'light' ? colorLight : colorDark);
 
-    gsap.set(bgField, { backgroundColor: colorOf(themeSections[0] ? themeSections[0].dataset.theme : 'dark') });
+    let bgKeyframes = [];
+    let bgLightness = themeSections[0] && themeSections[0].dataset.theme === 'light' ? 1 : 0;
 
-    let prevEndFn = () => 0;
-    for (let i = 0; i < themeSections.length - 1; i++) {
-      const current = themeSections[i];
-      const next = themeSections[i + 1];
-      if (current.dataset.theme === next.dataset.theme) continue;
-
-      // Freeze the current prevEndFn reference per-iteration: startFn is only
-      // invoked later (lazily, by ScrollTrigger), by which point the loop has
-      // already finished and a shared mutable variable would just hold the
-      // last iteration's value for every closure.
-      const capturedPrevEnd = prevEndFn;
-      const span = () => (document.documentElement.scrollHeight / themeSections.length) * 1.5;
-      const startFn = () => Math.max(next.offsetTop - span() / 2, capturedPrevEnd());
-      const endFn = () => next.offsetTop + span() / 2;
-
-      gsap.fromTo(
-        bgField,
-        { backgroundColor: colorOf(current.dataset.theme) },
-        {
-          backgroundColor: colorOf(next.dataset.theme),
-          ease: 'none',
-          scrollTrigger: { start: startFn, end: endFn, scrub: true },
-        }
-      );
-
-      prevEndFn = endFn;
+    // Each section gets a genuine flat hold (not just a single instant at its
+    // midpoint) so every colour reads as settled for a comparable stretch —
+    // dark "beat" sections included, not just the taller light ones either
+    // side of them. The ramp at each boundary is sized off the SHORTER of
+    // the two flanking sections, so a short section never has its whole
+    // height eaten by transition before it gets to hold anything.
+    function buildBgKeyframes() {
+      const stops = [];
+      const rampFraction = 0.22;
+      themeSections.forEach((s, i) => {
+        const value = s.dataset.theme === 'light' ? 1 : 0;
+        const prev = themeSections[i - 1];
+        const next = themeSections[i + 1];
+        const rampIn = prev ? Math.min(s.offsetHeight, prev.offsetHeight) * rampFraction : 0;
+        const rampOut = next ? Math.min(s.offsetHeight, next.offsetHeight) * rampFraction : 0;
+        const plateauStart = s.offsetTop + rampIn;
+        const plateauEnd = Math.max(plateauStart, s.offsetTop + s.offsetHeight - rampOut);
+        stops.push({ y: plateauStart, value });
+        stops.push({ y: plateauEnd, value });
+      });
+      bgKeyframes = stops;
     }
+
+    function lightnessAt(y) {
+      const kfs = bgKeyframes;
+      if (!kfs.length) return bgLightness;
+      if (y <= kfs[0].y) return kfs[0].value;
+      if (y >= kfs[kfs.length - 1].y) return kfs[kfs.length - 1].value;
+      for (let i = 0; i < kfs.length - 1; i++) {
+        const a = kfs[i];
+        const b = kfs[i + 1];
+        if (y >= a.y && y <= b.y) {
+          const t = (y - a.y) / (b.y - a.y);
+          const smooth = t * t * (3 - 2 * t);
+          return a.value + (b.value - a.value) * smooth;
+        }
+      }
+      return kfs[kfs.length - 1].value;
+    }
+
+    buildBgKeyframes();
+    gsap.set(bgField, { backgroundColor: gsap.utils.interpolate(colorDark, colorLight, bgLightness) });
+    document.documentElement.style.setProperty('--bg-mix', bgLightness.toFixed(4));
+
+    // Gradualness already comes from the ramp zones in lightnessAt() (spread
+    // over real scroll distance, not time) — tracking the target directly
+    // here, rather than adding a second temporal lag on top, is what lets
+    // short sections actually reach and hold their settled colour instead of
+    // perpetually chasing it.
+    gsap.ticker.add(() => {
+      const target = lightnessAt(window.scrollY);
+      if (Math.abs(target - bgLightness) < 0.0006) return;
+      bgLightness = target;
+      bgField.style.backgroundColor = gsap.utils.interpolate(colorDark, colorLight, bgLightness);
+      document.documentElement.style.setProperty('--bg-mix', bgLightness.toFixed(4));
+    });
+
+    window.addEventListener('resize', buildBgKeyframes);
+    window.addEventListener('load', buildBgKeyframes);
   }
 
   // ---------------------------------------------------
@@ -255,21 +331,23 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
     return Array.from(visual.querySelectorAll('.split-word-inner'));
   }
 
+  // Scroll-driven: each word ramps from low to full opacity as the block
+  // scrolls through its own viewport window — tied directly to scroll
+  // progress (scrub), not a fixed-duration one-shot animation.
   const mobileType = isSmallScreen();
   document.querySelectorAll('.eyebrow, .section-title, .why-sub, .beat-caption').forEach((el) => {
     const words = splitWords(el);
     if (!words.length) return;
     gsap.fromTo(
       words,
-      { yPercent: 115, autoAlpha: 0, filter: `blur(${mobileType ? 4 : 8}px)` },
+      { yPercent: mobileType ? 45 : 65, autoAlpha: 0.08, filter: `blur(${mobileType ? 3 : 6}px)` },
       {
         yPercent: 0,
         autoAlpha: 1,
         filter: 'blur(0px)',
-        duration: 1,
-        ease: 'power3.out',
-        stagger: mobileType ? 0.03 : 0.045,
-        scrollTrigger: { trigger: el, start: 'top 90%', once: true },
+        ease: 'premiumEase',
+        stagger: { each: mobileType ? 0.025 : 0.04, from: 'start' },
+        scrollTrigger: { trigger: el, start: 'top 92%', end: 'top 42%', scrub: 0.4 },
       }
     );
   });
@@ -283,7 +361,7 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   const splitSelector = '.eyebrow, .section-title, .why-sub';
   gsap.utils.toArray('.reveal').forEach((el) => {
     if (el.matches(splitSelector)) return;
-    if (el.matches('.service-card, .testimonial')) return;
+    if (el.matches('.service-row, .testimonial')) return;
     const hasParallax = el.hasAttribute('data-speed');
     gsap.fromTo(
       el,
@@ -293,13 +371,13 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
         y: 0,
         scale: 1,
         duration: 1,
-        ease: 'power3.out',
+        ease: 'premiumEase',
         scrollTrigger: { trigger: el, start: 'top 88%', once: true },
       }
     );
   });
 
-  ['.service-card', '.testimonial'].forEach((selector) => {
+  ['.service-row', '.testimonial'].forEach((selector) => {
     ScrollTrigger.batch(selector, {
       start: 'top 88%',
       once: true,
@@ -307,7 +385,7 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
         gsap.fromTo(
           batch,
           { autoAlpha: 0, y: 28 },
-          { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.12 }
+          { autoAlpha: 1, y: 0, duration: 0.9, ease: 'premiumEase', stagger: 0.12 }
         ),
     });
   });
@@ -326,7 +404,7 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
       {
         clipPath: 'inset(0% 0% 0% 0%)',
         duration: 1.1,
-        ease: 'power3.inOut',
+        ease: 'premiumEase',
         scrollTrigger: { trigger: kenburnsFrame, start: 'top 85%', once: true },
       }
     );
@@ -369,7 +447,7 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
       });
 
       if (canHover) {
-        document.querySelectorAll('.service-card, .testimonial, .contact-direct').forEach((card) => {
+        document.querySelectorAll('.testimonial, .contact-direct').forEach((card) => {
           const quickX = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' });
           const quickY = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' });
           const quickLift = gsap.quickTo(card, 'y', { duration: 0.5, ease: 'power3.out' });
@@ -390,6 +468,49 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
 
           card.addEventListener('mousemove', onMove);
           card.addEventListener('mouseleave', onLeave);
+        });
+
+        // Magnetic CTA buttons — pulls toward the cursor within a proximity
+        // radius (ease-out while tracking), releases back to rest with an
+        // ease-in-out curve on leaving that radius or the button itself.
+        const magnets = Array.from(document.querySelectorAll('.btn')).map((btn) => ({
+          btn,
+          quickX: gsap.quickTo(btn, 'x', { duration: 0.35, ease: 'power3.out' }),
+          quickY: gsap.quickTo(btn, 'y', { duration: 0.35, ease: 'power3.out' }),
+          quickScale: gsap.quickTo(btn, 'scale', { duration: 0.2, ease: 'power2.out' }),
+          active: false,
+        }));
+
+        const release = (m) => {
+          m.active = false;
+          gsap.to(m.btn, { x: 0, y: 0, duration: 0.6, ease: 'premiumEase', overwrite: true });
+        };
+
+        document.addEventListener('mousemove', (event) => {
+          magnets.forEach((m) => {
+            const rect = m.btn.getBoundingClientRect();
+            const dx = event.clientX - (rect.left + rect.width / 2);
+            const dy = event.clientY - (rect.top + rect.height / 2);
+            const reach = Math.max(rect.width, rect.height) / 2 + 90;
+            const dist = Math.hypot(dx, dy);
+            if (dist < reach) {
+              m.active = true;
+              const pull = 1 - dist / reach;
+              m.quickX(dx * 0.35 * pull);
+              m.quickY(dy * 0.35 * pull - 3);
+            } else if (m.active) {
+              release(m);
+            }
+          });
+        });
+
+        magnets.forEach((m) => {
+          m.btn.addEventListener('mouseleave', () => {
+            if (m.active) release(m);
+          });
+          m.btn.addEventListener('mousedown', () => m.quickScale(0.94));
+          m.btn.addEventListener('mouseup', () => m.quickScale(1));
+          m.btn.addEventListener('mouseleave', () => m.quickScale(1));
         });
       }
     }
