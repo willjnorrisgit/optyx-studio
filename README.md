@@ -26,20 +26,20 @@ blending its own tail into its own head.
 
 ## Page structure & motion system
 
-The page alternates black and off-white sections all the way down. Both
-"beat" sections now hold as long as the light sections either side of
-them (`min-height: 130vh`, same as `.services`/`.why-us`) rather than
-being a short, cramped pause — the second one is now a video-free, quiet
-dark hold rather than a repeat of the same treatment:
+The site is **mainly black** end to end now — there's no more alternating
+black/off-white rhythm. Every section sits on the same `--bg-black`;
+contrast comes from white floating cards (testimonials, the contact panel,
+the case-study frame, form fields) and a vivid teal-blue accent, not from
+switching the page's own background colour:
 
 ```
-Hero (black, video, pinned)
-  → Services "What we do" (off-white, holds)
-    → Beat: dot-waves (black, video, holds)
-      → Why us (off-white, holds)
+Hero (black, video, pinned — pill nav + ring badge + headline/stats)
+  → Services "What we do" (black, holds)
+    → Beat: dot-waves particles (black, video, pinned + content scrolls over it)
+      → Why us (black, holds, white testimonial/badge cards)
         → Beat: quiet dark hold, no video
-          → Case study + Contact (off-white, runs to the footer)
-            → Footer (off-white — no colour of its own)
+          → Case study + Contact (black, runs to the footer, white cards)
+            → Footer (black — no colour of its own)
 ```
 
 Motion runs on **GSAP + ScrollTrigger** for all scroll-linked animation and
@@ -51,57 +51,51 @@ behind `prefers-reduced-motion`: when it's set, none of the below runs and
 every section just shows its own static CSS background/opacity — a plain,
 fully-legible fallback with zero extra branching required.
 
-**Background rhythm.** A fixed field (`#bgField`) sits behind everything;
-its `background-color` is driven by a single continuous function of
-`scrollY` (`lightnessAt()` in `js/main.js`), written every frame to both
-the field itself and a `--bg-mix` CSS custom property (0 = black, 1 =
-off-white) — there are no discrete per-section triggers. Each theme
-section contributes a genuine flat *plateau* at its own target value, and
-every colour change happens entirely within the **outgoing** section's own
-tail (`buildBgKeyframes()`) — never bleeding into the section that follows
-— so a heading is never revealed while the background underneath it is
-still mid-blend. `final-section` is the one section whose content sits
-right at its own top edge rather than being vertically centred (unlike
-every other section), so its incoming boundary gets an extra lead
-distance on top of the normal ramp. The hero is a special case: it's
-pinned and fully opaque throughout, so its own ramp is anchored to the
-pin's *actual* release point (`heroTl.scrollTrigger.end`) rather than its
-own height — otherwise the whole blend would happen hidden behind the
-pinned, opaque hero and the cut to the next section would look abrupt
-instead of like a blend. Sections turn transparent only once
-`body.motion-active` is present, so the reduced-motion fallback is just
-each section's own solid CSS colour, unchanged.
+**Colour system.** `--text`/`--text-dim`/`--border` are the page-level
+tokens (light-on-black, for content sitting directly on a section); a
+parallel `--text-panel`/`--text-panel-dim`/`--border-panel*` set exists
+for content living inside a white `--bg-panel` card, since white-on-white
+would otherwise disappear. `body { color-scheme: dark }` keeps native UI
+(scrollbars, unstyled form-control fallbacks) dark by default, with
+`color-scheme: light` scoped back onto the two actual `<input>`/
+`<textarea>` fields so their own chrome doesn't get auto-dark-moded away
+from the explicit white fill. The accent (`--accent`/`--accent-bright`) is
+a vivid teal-blue, used for eyebrows, gradient headings, links, bullet
+dots, the ring logo's lens highlight, and button fills.
 
-**Header & hero.** The header hides on scroll-down and reappears on
-scroll-up via a master `ScrollTrigger`. Its logo (`#homeLogo`) is a normal
-in-page link to `#top` for no-JS/reduced-motion visitors; with JS it also
-clears the intro's session flag and does a full navigation back to the
-page root, so clicking it replays the intro from scratch exactly as a
-first visit would. The hero itself is **pinned** (`pin: true`) for one
-extra viewport height of scroll, and the wordmark visibly separates from
-the video during it: the video retreats upward for the whole pinned range
-while the badge drops steadily downward across that same range (opposite
-directions, so the gap between them grows continuously), fading out only
-in the pin's final 40% once it's dropped well clear, right as the next
-section takes over.
+**Header & hero.** The header (`.site-header`) is a floating rounded pill
+now (blurred semi-transparent fill, inset from the top) rather than a
+flush full-width bar, and hides on scroll-down / reappears on scroll-up
+via a master `ScrollTrigger` same as before. Its logo (`#homeLogo`) is a
+plain "OPTYX" wordmark — a normal in-page link to `#top` for
+no-JS/reduced-motion visitors; with JS it also clears the intro's session
+flag and does a full navigation back to the page root, so clicking it
+replays the intro from scratch exactly as a first visit would. The hero
+itself is **pinned** (`pin: true`) for one extra viewport height of
+scroll: the video retreats upward for the whole pinned range while the
+identity mark — a small ring "lens" badge (`#icon-optyx-ring`, a matte
+grey ring with a teal-blue highlight ring at its upper-right corner,
+defined once as an SVG `<symbol>` and reused via `<use>`) — drops steadily
+downward across that same range, fading out only in the pin's final 40%
+once it's dropped well clear, right as the next section takes over. The
+rest of the hero (headline, subhead, CTA, the two stat blocks) sits
+outside the pin timeline entirely and stays static throughout — only the
+badge and video move.
 
-**Video-section edges.** A `<video>` is fully opaque and fills its whole
-section, so left alone it just pops in and out as a hard-edged box the
-instant its section enters or leaves the viewport — no matter how smooth
-`bgField`'s own colour transition is either side of it. Every `.beat
-video`'s fade is *sequenced*, not concurrent with `bgField`'s own ramp:
-the background finishes darkening completely first, then the video fades
-in; on the way out, the video fades out completely first, then the
-background starts lightening. The video's own trigger end is computed
-with the exact same `RAMP_FRACTION` used by `buildBgKeyframes()`, so its
-fade-out always finishes exactly where the background's ramp begins —
-concurrent fades just trade one seam for a subtler one, so the two now
-never overlap at all.
-
-**Off-white tone.** `--bg` is a cool, slightly blue-grey `#f0f1f3`
-("silvery") rather than a warm cream, to read as one family with the
-videos' own grey/blue tones and the metallic-blue accent — not a separate,
-warmer palette.
+**Beat-dots — particles pin-and-hold.** Same pinning technique as the
+hero: once `.beat-dots` reaches the top of the viewport it locks in place
+for ~1.5 screens (`end: '+=150%'`) while the caption drifts upward over
+the now full-screen `dot-waves.mp4`, then releases into "Why us". Because
+every section is the same solid black now, the video simply fading in
+(over ~16% of the pin) and back out (before the final ~18%) against that
+constant backdrop is what reads as "black, then the particles appear" —
+there's no separate colour ramp left to sequence it against, unlike the
+old cross-fading system. The caption is deliberately *not* run through the
+generic word-split reveal (see Typography below) — a viewport-relative
+scroll trigger on a word span doesn't mix well with a separate manual
+transform on its own pinned ancestor, so it gets a plain fade-in from the
+pin timeline instead; `.beat-banner`'s caption (untouched, not pinned)
+still gets the full per-word treatment.
 
 **Typography.** Headings/eyebrows/captions are split into words at
 runtime (`splitWords()` in `js/main.js`). Each word's opacity/position is
@@ -173,6 +167,10 @@ preview, not the deployed site.
 The following are placeholder content and should be replaced with real
 material before launch:
 
+- **Hero stats** — the two `[X]+` stat blocks (`.hero-stat-num` in
+  `index.html`) are bracketed placeholders — Optyx Studio has no verified
+  track record yet, so these are deliberately not real numbers. Fill in
+  once there's an honest count for years/projects.
 - **Case study screenshot** — `.screenshot-placeholder` in the "Work"
   section. Replace with an `<img>` of the real LockOn site.
 - **Case study results** — bracketed metrics in the case study section.

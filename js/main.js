@@ -145,18 +145,6 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   });
 
   // ---------------------------------------------------
-  // Theme sections — feeds the background-rhythm keyframes below.
-  // ---------------------------------------------------
-  const themeSections = Array.from(document.querySelectorAll('[data-theme]'));
-
-  // Shared between the background-rhythm ramps and the video-edge fades
-  // below, so a video's own fade always finishes exactly where bgField's
-  // colour ramp begins (never overlapping it) — see both usages.
-  const RAMP_FRACTION = 0.24;
-  const LEAD_BUFFER = 420;
-  const POST_PIN_RAMP = 420;
-
-  // ---------------------------------------------------
   // Header — hides on scroll down, reappears on scroll up.
   // ---------------------------------------------------
   const header = document.querySelector('.site-header');
@@ -214,9 +202,9 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
 
     if (heroVideo) {
       heroTl.to(heroVideo, { y: -videoTravel, ease: 'none', duration: 1 }, 0);
-      // fades out approaching release, revealing the (already dark) bgField
-      // instead of the video's own opaque content cutting off hard right at
-      // the pin boundary
+      // fades out approaching release, revealing the (already black) page
+      // background instead of the video's own opaque content cutting off
+      // hard right at the pin boundary
       heroTl.to(heroVideo, { opacity: 0, ease: 'none', duration: 0.3 }, 0.7);
     }
     // badge: drops steadily for the entire pinned range (opposite direction
@@ -228,142 +216,41 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   }
 
   // ---------------------------------------------------
-  // Video-section edges — sequenced strictly after/before bgField's own
-  // colour ramps, not concurrent with them: the background finishes
-  // darkening completely first, THEN the video fades in; on the way out,
-  // the video fades out completely first, THEN the background starts
-  // lightening. A video is fully opaque and covers its whole section, so
-  // without this it just pops in/out as a hard-edged box no matter how
-  // smooth the colour transition either side of it is — and overlapping
-  // the two just trades one seam for a different, subtler one. Using the
-  // same RAMP_FRACTION as buildBgKeyframes for the boundary guarantees the
-  // video's fade-out finishes exactly where bgField's own ramp begins.
+  // Beat-dots — particles pin-and-hold. Same technique as the hero pin
+  // above: once the section reaches the top of the viewport it locks in
+  // place for ~1.5 screens while its caption scrolls up over the
+  // (now full-screen) video, then releases into why-us. Every section is
+  // the same solid black now (see css/styles.css), so the video simply
+  // fading in/out against that constant backdrop already reads as "black,
+  // then the particles appear" — there's no separate colour ramp left to
+  // sequence it against.
   // ---------------------------------------------------
-  document.querySelectorAll('.beat .section-video').forEach((video) => {
-    const section = video.closest('.beat');
-    const index = themeSections.indexOf(section);
-    const next = themeSections[index + 1];
+  const beatDots = document.querySelector('.beat-dots');
+  const beatDotsVideo = beatDots ? beatDots.querySelector('.section-video') : null;
+  const beatDotsInner = beatDots ? beatDots.querySelector('.beat-inner') : null;
 
-    const outgoingRampWidth = () =>
-      next && next.dataset.theme !== section.dataset.theme
-        ? Math.min(section.offsetHeight, next.offsetHeight) * RAMP_FRACTION
-        : 0;
+  if (beatDots && beatDotsVideo && beatDotsInner) {
+    const beatPinDistance = isSmallScreen() ? '120%' : '150%';
 
-    // one timeline, not two independent scrubbed tweens — two separate
-    // ScrollTriggers fighting over the same property each render their own
-    // "at rest" value outside their own active range, and whichever was
-    // created last wins regardless of actual scroll position
     gsap
       .timeline({
         scrollTrigger: {
-          start: () => section.offsetTop,
-          end: () => section.offsetTop + section.offsetHeight - outgoingRampWidth(),
-          scrub: 0.3,
+          trigger: beatDots,
+          start: 'top top',
+          end: `+=${beatPinDistance}`,
+          scrub: 1,
+          pin: true,
+          anticipatePin: 1,
         },
       })
-      .fromTo(video, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.2 }, 0)
-      .to(video, { opacity: 0, ease: 'none', duration: 0.25 }, 0.75);
-  });
-
-  // ---------------------------------------------------
-  // Background rhythm — a single continuous scroll-linked value (0 = black,
-  // 1 = off-white), recomputed every frame from one function of scrollY and
-  // written to a CSS custom property + the fixed field's background-colour.
-  // There are no discrete per-section triggers: `lightnessAt()` is one
-  // piecewise smoothstep-interpolated curve across the entire page —
-  // gradualness comes purely from the ramp zones spanning real scroll
-  // distance, see buildBgKeyframes() below.
-  // ---------------------------------------------------
-  const bgField = document.getElementById('bgField');
-
-  if (bgField) {
-    const rootStyle = getComputedStyle(document.documentElement);
-    const colorDark = rootStyle.getPropertyValue('--bg-black').trim();
-    const colorLight = rootStyle.getPropertyValue('--bg').trim();
-
-    let bgKeyframes = [];
-    let bgLightness = themeSections[0] && themeSections[0].dataset.theme === 'light' ? 1 : 0;
-
-    // Every boundary's transition happens entirely within the OUTGOING
-    // section's own tail, finishing before the next section's box even
-    // begins (no ramp bleeding into the incoming section) — so a heading
-    // never becomes readable while the background underneath it is still
-    // mid-blend. Most sections are safe by construction (their content is
-    // vertically centred, nowhere near the boundary); final-section is the
-    // one exception (its content starts right at its own top) so it gets
-    // an extra lead distance on top of the normal ramp. Hero is pinned and
-    // fully opaque throughout, so its ramp can only be visible once the pin
-    // actually releases — anchored to the pin's own real end position
-    // rather than hero's own height, or the whole blend would happen
-    // hidden behind it and the cut to the next section would look abrupt.
-    function buildBgKeyframes() {
-      const stops = [];
-      const heroEnd = heroTl && heroTl.scrollTrigger ? heroTl.scrollTrigger.end : null;
-
-      themeSections.forEach((s, i) => {
-        const value = s.dataset.theme === 'light' ? 1 : 0;
-        const prev = themeSections[i - 1];
-        const next = themeSections[i + 1];
-        let plateauStart = s.offsetTop;
-        let plateauEnd = s.offsetTop + s.offsetHeight;
-
-        if (prev && prev.id === 'hero' && heroEnd !== null) {
-          plateauStart = heroEnd + POST_PIN_RAMP;
-        }
-
-        if (s.id === 'hero' && heroEnd !== null) {
-          // pinned + fully opaque throughout: nothing behind it is visible
-          // until release, so stay dark for the whole pin and let the ramp
-          // run visibly afterwards, into the next section's own approach
-          plateauEnd = heroEnd;
-        } else if (next && next.dataset.theme !== s.dataset.theme) {
-          const rampWidth = Math.min(s.offsetHeight, next.offsetHeight) * RAMP_FRACTION;
-          const extraLead = next.classList.contains('final-section') ? LEAD_BUFFER : 0;
-          plateauEnd = Math.max(plateauStart, s.offsetTop + s.offsetHeight - rampWidth - extraLead);
-        }
-
-        stops.push({ y: plateauStart, value });
-        stops.push({ y: Math.max(plateauStart, plateauEnd), value });
-      });
-      bgKeyframes = stops;
-    }
-
-    function lightnessAt(y) {
-      const kfs = bgKeyframes;
-      if (!kfs.length) return bgLightness;
-      if (y <= kfs[0].y) return kfs[0].value;
-      if (y >= kfs[kfs.length - 1].y) return kfs[kfs.length - 1].value;
-      for (let i = 0; i < kfs.length - 1; i++) {
-        const a = kfs[i];
-        const b = kfs[i + 1];
-        if (y >= a.y && y <= b.y) {
-          const t = (y - a.y) / (b.y - a.y);
-          const smooth = t * t * (3 - 2 * t);
-          return a.value + (b.value - a.value) * smooth;
-        }
-      }
-      return kfs[kfs.length - 1].value;
-    }
-
-    buildBgKeyframes();
-    gsap.set(bgField, { backgroundColor: gsap.utils.interpolate(colorDark, colorLight, bgLightness) });
-    document.documentElement.style.setProperty('--bg-mix', bgLightness.toFixed(4));
-
-    // Gradualness already comes from the ramp zones in lightnessAt() (spread
-    // over real scroll distance, not time) — tracking the target directly
-    // here, rather than adding a second temporal lag on top, is what lets
-    // short sections actually reach and hold their settled colour instead of
-    // perpetually chasing it.
-    gsap.ticker.add(() => {
-      const target = lightnessAt(window.scrollY);
-      if (Math.abs(target - bgLightness) < 0.0006) return;
-      bgLightness = target;
-      bgField.style.backgroundColor = gsap.utils.interpolate(colorDark, colorLight, bgLightness);
-      document.documentElement.style.setProperty('--bg-mix', bgLightness.toFixed(4));
-    });
-
-    window.addEventListener('resize', buildBgKeyframes);
-    window.addEventListener('load', buildBgKeyframes);
+      // video: fades in early, holds fully visible, fades out before release
+      .fromTo(beatDotsVideo, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.16 }, 0)
+      .to(beatDotsVideo, { opacity: 0, ease: 'none', duration: 0.16 }, 0.82)
+      // caption: fades in over the same opening window, then drifts upward
+      // across the whole hold — two different properties, so this doesn't
+      // fight the fade-in for control of the same one
+      .fromTo(beatDotsInner, { autoAlpha: 0 }, { autoAlpha: 1, ease: 'none', duration: 0.18 }, 0.04)
+      .to(beatDotsInner, { yPercent: -50, ease: 'none', duration: 1 }, 0);
   }
 
   // ---------------------------------------------------
@@ -406,6 +293,11 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   // reads as prompt rather than a long, slow reveal.
   const mobileType = isSmallScreen();
   document.querySelectorAll('.eyebrow, .section-title, .why-sub, .beat-caption').forEach((el) => {
+    // .beat-dots' own caption is driven by its pin timeline above instead
+    // (a viewport-relative trigger on a word span doesn't mix well with a
+    // separate manual transform on its pinned ancestor) — .beat-banner's
+    // caption is untouched and still gets the full word-level reveal.
+    if (el.closest('.beat-dots')) return;
     const words = splitWords(el);
     if (!words.length) return;
     gsap.fromTo(

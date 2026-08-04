@@ -27,6 +27,18 @@
 </head>
 <body>
 
+  <!-- Ring "lens" mark — matte grey ring with a smaller teal-blue ring at
+       its upper-right, like a lens flare/highlight. Used once, large, as
+       the hero's identity mark (see .hero-logo-mark); the header/footer
+       stay a plain text wordmark, not this icon. -->
+  <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+    <symbol id="icon-optyx-ring" viewBox="0 0 120 120">
+      <circle cx="58" cy="62" r="46" fill="none" stroke="#84868c" stroke-width="2.5" />
+      <circle cx="92" cy="27" r="12" fill="var(--accent-bright)" />
+      <circle cx="88" cy="23" r="3.2" fill="#fff" opacity="0.8" />
+    </symbol>
+  </svg>
+
   <div class="intro" id="intro" aria-hidden="true">
     <div class="intro-inner">
       <div class="intro-glow" aria-hidden="true"></div>
@@ -41,16 +53,10 @@
 
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- Fixed field behind everything; JS crossfades its colour to drive the continuous black/off-white rhythm -->
-  <div class="bg-field" id="bgField" aria-hidden="true"></div>
-
   <header class="site-header" id="top">
     <div class="wrap header-inner">
       <a class="logo" href="#top" id="homeLogo" aria-label="Optyx Studio — back to top and replay intro">
-        <span class="logo-word">
-          <span class="logo-primary">Optyx</span>
-          <span class="logo-sub">Studio</span>
-        </span>
+        <span class="logo-word">OPTYX</span>
       </a>
 
       <nav class="site-nav" aria-label="Primary">
@@ -66,7 +72,7 @@
       </button>
     </div>
 
-    <div class="mobile-nav" id="mobileNav">
+    <div class="wrap mobile-nav" id="mobileNav">
       <ul>
         <li><a href="#services">Services</a></li>
         <li><a href="#work">Work</a></li>
@@ -84,15 +90,35 @@
       </video>
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="wrap hero-inner">
-        <h1 class="hero-logo">
-          <span class="hero-logo-primary">Optyx</span>
-          <span class="hero-logo-sub">Studio</span>
-        </h1>
+        <div class="hero-logo" aria-hidden="true">
+          <svg class="hero-logo-mark" viewBox="0 0 120 120"><use href="#icon-optyx-ring" /></svg>
+        </div>
+
+        <div class="hero-copy">
+          <h1 class="hero-headline">Premium websites built to convert ad spend into customers.</h1>
+          <p class="hero-subhead">We design and build conversion-focused websites for businesses that already know how to advertise.</p>
+          <a class="btn btn-primary hero-cta" href="#contact">Let's talk</a>
+        </div>
+
+        <!-- Placeholder stats — Optyx Studio has no verified track record yet
+             (see README "Known placeholders"); bracketed values so this
+             never reads as a real claim, styled like a normal stat block so
+             swapping in real numbers later needs no markup/CSS changes. -->
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-num">[X]+</span>
+            <span class="hero-stat-label">Years experience</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-num">[X]+</span>
+            <span class="hero-stat-label">Projects delivered</span>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- WHAT WE DO -->
-    <section class="services" id="services" data-theme="light">
+    <section class="services" id="services" data-theme="dark">
       <div class="parallax-layer blob-a" data-speed="0.2" aria-hidden="true"></div>
       <div class="wrap">
         <p class="eyebrow reveal">What we do</p>
@@ -131,13 +157,13 @@
       <video class="section-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
         <source src="assets/video/dot-waves.mp4" type="video/mp4">
       </video>
-      <div class="wrap beat-inner reveal" data-speed="0.4">
+      <div class="wrap beat-inner">
         <p class="beat-caption">Every pixel earns its place.</p>
       </div>
     </section>
 
     <!-- WHY US / CREDIBILITY -->
-    <section class="why-us" id="why" data-theme="light">
+    <section class="why-us" id="why" data-theme="dark">
       <div class="parallax-layer blob-b" data-speed="0.2" aria-hidden="true"></div>
       <div class="wrap">
         <p class="eyebrow reveal">Why us</p>
@@ -173,7 +199,7 @@
     </section>
 
     <!-- CASE STUDY + CONTACT — off-white, runs to the footer -->
-    <section class="final-section" data-theme="light">
+    <section class="final-section" data-theme="dark">
       <div class="wrap case-study-inner" id="work">
         <div class="case-media reveal" data-speed="0.12">
           <div class="kenburns-frame">
@@ -249,13 +275,10 @@
 
   </main>
 
-  <footer class="site-footer" data-theme="light">
+  <footer class="site-footer" data-theme="dark">
     <div class="wrap footer-inner">
       <a class="logo" href="#top" aria-label="Optyx Studio home">
-        <span class="logo-word">
-          <span class="logo-primary">Optyx</span>
-          <span class="logo-sub">Studio</span>
-        </span>
+        <span class="logo-word">OPTYX</span>
       </a>
       <p class="footer-copy">&copy; <span id="year"></span> Optyx Studio. All rights reserved.</p>
     </div>
