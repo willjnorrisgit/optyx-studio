@@ -235,12 +235,12 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 .btn-primary {
-  background: var(--accent-bright);
+  background: var(--accent);
   color: #fff;
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  background: #4a79a8;
+  background: var(--accent-bright);
 }
 
 .btn-ghost {
@@ -362,7 +362,12 @@ ul { list-style: none; margin: 0; padding: 0; }
 .logo {
   display: inline-flex;
   align-items: center;
+  gap: 0.6rem;
   color: inherit;
+}
+.logo-badge {
+  width: 30px;
+  height: 30px;
 }
 .logo-word {
   font-family: var(--font);
@@ -469,12 +474,20 @@ body::after {
   height: 150%;
 }
 
+/* Three stacked scrims: the original top one clears the nav area; the
+   other two darken the lower-left quadrant specifically, where the
+   headline/subhead/CTA sit, so they stay legible regardless of what the
+   video is doing behind them at any given moment, without having to
+   fight the video's own crop/position to keep that zone empty. */
 .hero-overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 32%);
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 32%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 28%, rgba(0, 0, 0, 0) 58%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 26%, rgba(0, 0, 0, 0) 52%);
 }
 
 .hero-inner {
@@ -483,18 +496,19 @@ body::after {
   height: 100%;
 }
 
-/* Ring "lens" mark — the badge that drops/fades during the hero pin (see
-   heroTl in js/main.js, unchanged: it animates whatever .hero-logo
-   contains). Small and up top, out of the way of the headline below it. */
+/* Badge mark — the identity mark that drops/fades during the hero pin
+   (see heroTl in js/main.js, unchanged: it animates whatever .hero-logo
+   contains). Top-right, clear of the headline block on the left. */
 .hero-logo {
   position: absolute;
-  top: 15%;
-  left: var(--gutter);
+  top: 12%;
+  right: var(--gutter);
 }
 
 .hero-logo-mark {
+  display: block;
   width: clamp(84px, 8vw, 130px);
-  height: auto;
+  height: clamp(84px, 8vw, 130px);
 }
 
 .hero-copy {
@@ -681,6 +695,15 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   position: relative;
   z-index: 2;
   width: 100%;
+}
+
+/* "Blend through the trails" — over the section's own black this looks
+   identical to normal text (screen of any colour with black is that same
+   colour), so it only visibly picks up colour where it actually crosses
+   a bright trail line as it rises into place (see the pin timeline in
+   js/main.js) — no need to hand-time it against the video's own motion. */
+.beat-dots .beat-inner {
+  mix-blend-mode: screen;
 }
 
 .beat-caption {
@@ -1026,7 +1049,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   .header-inner { height: 76px; }
 
   .hero-logo { top: 10%; }
-  .hero-logo-mark { width: 64px; }
+  .hero-logo-mark { width: 64px; height: 64px; }
 
   .hero-copy { bottom: 20%; max-width: calc(100% - 2 * var(--gutter)); }
   .hero-subhead { max-width: 100%; }

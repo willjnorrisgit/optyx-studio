@@ -12,17 +12,22 @@ Plain HTML/CSS/JS, no build step, deploy-ready for GitHub Pages.
 index.html                                Page markup
 css/styles.css                            All styling
 js/main.js                                Intro, GSAP/ScrollTrigger/Lenis motion system, nav, contact form
-assets/favicon.svg                        Browser tab icon
+assets/favicon.svg                        Browser tab icon (badge on a dark rounded-square fill)
+assets/optyx-badge.svg                    The identity mark — matte-grey ring + blue "lens" accent
 assets/video/abstract-art-03.mp4          Hero background loop
-assets/video/dot-waves.mp4                Precision beat section background loop
+assets/video/motion-trail.mp4             Beat-dots (particles) background loop
+assets/video/blue-flow.mp4                Beat-banner background loop
 assets/video/grey-marketing-banner.mp4    Unused — kept in assets/, no longer referenced (see below)
 ```
 
-`dot-waves` and `abstract-art-03` loop seamlessly: `dot-waves` was
-re-encoded from the original with a 0.4s cross-dissolve baked into the
-loop point to fix a visible jump at the restart; `abstract-art-03` is
-trimmed to its best rotation-match point with a built-in 0.25s crossfade
-blending its own tail into its own head.
+`abstract-art-03` and `motion-trail` already looped cleanly as delivered
+(verified by diffing their own first/last frame — well under the
+threshold that reads as a visible jump) and were left alone. `blue-flow`
+didn't — it's re-encoded from the source with a 0.4s crossfade blended
+across the loop point (same technique used on the old `dot-waves` clip
+this replaced): the true last 0.4s dissolves into the true first 0.4s,
+so what plays is a shorter loop with no seam rather than the original
+full-length clip with one.
 
 ## Page structure & motion system
 
@@ -33,11 +38,11 @@ the case-study frame, form fields) and a vivid teal-blue accent, not from
 switching the page's own background colour:
 
 ```
-Hero (black, video, pinned — pill nav + ring badge + headline/stats)
+Hero (black, video, pinned — pill nav + badge + headline/stats)
   → Services "What we do" (black, holds)
-    → Beat: dot-waves particles (black, video, pinned + content scrolls over it)
+    → Beat: motion-trail particles (black, video, pinned + content rises over it)
       → Why us (black, holds, white testimonial/badge cards)
-        → Beat: quiet dark hold, no video
+        → Beat: blue-flow (black, video, holds — quiet, not pinned)
           → Case study + Contact (black, runs to the footer, white cards)
             → Footer (black — no colour of its own)
 ```
@@ -63,39 +68,67 @@ from the explicit white fill. The accent (`--accent`/`--accent-bright`) is
 a vivid teal-blue, used for eyebrows, gradient headings, links, bullet
 dots, the ring logo's lens highlight, and button fills.
 
+**The badge (`assets/optyx-badge.svg`).** A matte-grey metal ring with a
+smaller blue "lens" ring set into its upper-right edge, both rendered as
+linear gradients for a brushed-metal look. It's a single source file,
+reused everywhere via a plain `<img src="assets/optyx-badge.svg">` (it
+scales cleanly at any size since it's just a 200×200 viewBox, so the same
+file works from favicon-size up to the large hero placement with no
+separate assets or inline duplication) — `assets/favicon.svg` is the one
+exception, a *separate* file that reuses the same ring/gradient markup
+over an added dark rounded-square fill, since a browser tab needs an
+opaque background rather than the badge's own transparent one.
+
 **Header & hero.** The header (`.site-header`) is a floating rounded pill
-now (blurred semi-transparent fill, inset from the top) rather than a
-flush full-width bar, and hides on scroll-down / reappears on scroll-up
-via a master `ScrollTrigger` same as before. Its logo (`#homeLogo`) is a
+(blurred semi-transparent fill, inset from the top) rather than a flush
+full-width bar, and hides on scroll-down / reappears on scroll-up via a
+master `ScrollTrigger`. Its logo (`#homeLogo`) is the badge next to a
 plain "OPTYX" wordmark — a normal in-page link to `#top` for
 no-JS/reduced-motion visitors; with JS it also clears the intro's session
 flag and does a full navigation back to the page root, so clicking it
-replays the intro from scratch exactly as a first visit would. The hero
-itself is **pinned** (`pin: true`) for one extra viewport height of
-scroll: the video retreats upward for the whole pinned range while the
-identity mark — a small ring "lens" badge (`#icon-optyx-ring`, a matte
-grey ring with a teal-blue highlight ring at its upper-right corner,
-defined once as an SVG `<symbol>` and reused via `<use>`) — drops steadily
-downward across that same range, fading out only in the pin's final 40%
-once it's dropped well clear, right as the next section takes over. The
-rest of the hero (headline, subhead, CTA, the two stat blocks) sits
-outside the pin timeline entirely and stays static throughout — only the
-badge and video move.
+replays the intro from scratch exactly as a first visit would. The footer
+logo is the same badge+wordmark lockup. The hero itself is **pinned**
+(`pin: true`) for one extra viewport height of scroll: the video retreats
+upward for the whole pinned range while the badge — large, top-right,
+clear of the headline block on the left — drops steadily downward across
+that same range, fading out only in the pin's final 40% once it's dropped
+well clear, right as the next section takes over. The rest of the hero
+(headline, subhead, CTA, the two stat blocks) sits outside the pin
+timeline entirely and stays static throughout — only the badge and video
+move. Three stacked gradients in `.hero-overlay` darken the lower-left
+quadrant specifically (where the headline/subhead/CTA sit) regardless of
+what the looping video is doing behind them at any given moment, rather
+than fighting the video's own crop to try to keep that zone empty.
 
-**Beat-dots — particles pin-and-hold.** Same pinning technique as the
+**Beat-dots — motion-trail pin-and-hold.** Same pinning technique as the
 hero: once `.beat-dots` reaches the top of the viewport it locks in place
-for ~1.5 screens (`end: '+=150%'`) while the caption drifts upward over
-the now full-screen `dot-waves.mp4`, then releases into "Why us". Because
-every section is the same solid black now, the video simply fading in
-(over ~16% of the pin) and back out (before the final ~18%) against that
-constant backdrop is what reads as "black, then the particles appear" —
-there's no separate colour ramp left to sequence it against, unlike the
-old cross-fading system. The caption is deliberately *not* run through the
-generic word-split reveal (see Typography below) — a viewport-relative
-scroll trigger on a word span doesn't mix well with a separate manual
-transform on its own pinned ancestor, so it gets a plain fade-in from the
-pin timeline instead; `.beat-banner`'s caption (untouched, not pinned)
-still gets the full per-word treatment.
+for ~1.5 screens (`end: '+=150%'`). The video fades in, the caption rises
+up from below the frame and settles onto the page, holds for a beat, then
+both fade out together to a genuine black hold before releasing into "Why
+us" — a deliberate cinematic beat rather than an instant cut, even though
+the next section is already the same black. The caption's rise is driven
+purely by `yPercent`, not by hand-timing it against the video's own
+motion: it carries `mix-blend-mode: screen` (`.beat-dots .beat-inner` in
+`css/styles.css`), which is a no-op over the section's own black (screen
+of any colour with black is that same colour) and only visibly picks up
+colour where it actually crosses a bright trail line as it rises — the
+"blend through the trails" effect falls out of that one CSS property
+rather than needing to be choreographed frame-by-frame. The caption is
+deliberately *not* run through the generic word-split reveal (see
+Typography below) — a viewport-relative scroll trigger on a word span
+doesn't mix well with a separate manual transform on its own pinned
+ancestor — so it gets driven by the pin timeline directly instead;
+`.beat-banner`'s caption (below, not pinned) still gets the full per-word
+treatment.
+
+**Beat-banner — blue-flow.** Not pinned, unlike beat-dots — a normal
+scroll-through hold with `blue-flow.mp4` behind the caption, fading in/out
+at its own section edges (`start: 'top bottom', end: 'bottom top'`) so it
+doesn't pop in as a hard-edged box. The clip's own black background is
+pure `#000`, close enough to the site's `--bg-black` (`#0a0a0c`, a
+12-unit-per-channel difference) to read as the same black rather than a
+visibly different panel — checked directly by sampling the clip's own
+corner pixels against the CSS value rather than assumed.
 
 **Typography.** Headings/eyebrows/captions are split into words at
 runtime (`splitWords()` in `js/main.js`). Each word's opacity/position is
@@ -128,7 +161,11 @@ a numbered list — large ghost numerals (01/02/03), thin dividers, a
 staggered reveal via `ScrollTrigger.batch` — rather than an icon card
 grid.
 
-**Cards & buttons.** On `(hover: hover) and (pointer: fine)` devices only:
+**Cards & buttons.** `.btn-primary` rests at the darker `--accent` and
+brightens to `--accent-bright` on hover (inverted from the original
+resting-bright/hover-dark pairing) — a deliberately darker resting shade
+per feedback that the lighter one read as too pale. On `(hover: hover) and
+(pointer: fine)` devices only:
 testimonials and the direct-contact panel get a cursor-follow 3D tilt +
 lift via `gsap.quickTo`; every `.btn` gets a magnetic hover (pulls toward
 the cursor within a proximity radius, `power3.out` while tracking,

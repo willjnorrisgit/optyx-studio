@@ -27,18 +27,6 @@
 </head>
 <body>
 
-  <!-- Ring "lens" mark — matte grey ring with a smaller teal-blue ring at
-       its upper-right, like a lens flare/highlight. Used once, large, as
-       the hero's identity mark (see .hero-logo-mark); the header/footer
-       stay a plain text wordmark, not this icon. -->
-  <svg width="0" height="0" style="position: absolute" aria-hidden="true">
-    <symbol id="icon-optyx-ring" viewBox="0 0 120 120">
-      <circle cx="58" cy="62" r="46" fill="none" stroke="#84868c" stroke-width="2.5" />
-      <circle cx="92" cy="27" r="12" fill="var(--accent-bright)" />
-      <circle cx="88" cy="23" r="3.2" fill="#fff" opacity="0.8" />
-    </symbol>
-  </svg>
-
   <div class="intro" id="intro" aria-hidden="true">
     <div class="intro-inner">
       <div class="intro-glow" aria-hidden="true"></div>
@@ -56,6 +44,7 @@
   <header class="site-header" id="top">
     <div class="wrap header-inner">
       <a class="logo" href="#top" id="homeLogo" aria-label="Optyx Studio — back to top and replay intro">
+        <img class="logo-badge" src="assets/optyx-badge.svg" alt="" width="200" height="200">
         <span class="logo-word">OPTYX</span>
       </a>
 
@@ -91,7 +80,7 @@
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="wrap hero-inner">
         <div class="hero-logo" aria-hidden="true">
-          <svg class="hero-logo-mark" viewBox="0 0 120 120"><use href="#icon-optyx-ring" /></svg>
+          <img class="hero-logo-mark" src="assets/optyx-badge.svg" alt="" width="200" height="200">
         </div>
 
         <div class="hero-copy">
@@ -152,10 +141,10 @@
       </div>
     </section>
 
-    <!-- PUNCTUATION BEAT — dot waves -->
+    <!-- PUNCTUATION BEAT — motion trails -->
     <section class="beat beat-dots" data-theme="dark">
       <video class="section-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
-        <source src="assets/video/dot-waves.mp4" type="video/mp4">
+        <source src="assets/video/motion-trail.mp4" type="video/mp4">
       </video>
       <div class="wrap beat-inner">
         <p class="beat-caption">Every pixel earns its place.</p>
@@ -191,8 +180,11 @@
       </div>
     </section>
 
-    <!-- PUNCTUATION BEAT — quiet dark pause, no video -->
+    <!-- PUNCTUATION BEAT — blue flow -->
     <section class="beat beat-banner" data-theme="dark">
+      <video class="section-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+        <source src="assets/video/blue-flow.mp4" type="video/mp4">
+      </video>
       <div class="wrap beat-inner reveal" data-speed="0.4">
         <p class="beat-caption">Built to perform under real ad spend.</p>
       </div>
@@ -278,6 +270,7 @@
   <footer class="site-footer" data-theme="dark">
     <div class="wrap footer-inner">
       <a class="logo" href="#top" aria-label="Optyx Studio home">
+        <img class="logo-badge" src="assets/optyx-badge.svg" alt="" width="200" height="200">
         <span class="logo-word">OPTYX</span>
       </a>
       <p class="footer-copy">&copy; <span id="year"></span> Optyx Studio. All rights reserved.</p>
