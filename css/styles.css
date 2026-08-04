@@ -220,6 +220,9 @@ ul { list-style: none; margin: 0; padding: 0; }
   color: var(--accent);
 }
 
+.btn:active { transform: scale(0.96); }
+.btn-ghost:active { transform: translateY(-2px) scale(0.96); }
+
 /* ---------------------------------------------------
    Header / nav — always solid black, nav links only
 --------------------------------------------------- */
@@ -230,7 +233,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   z-index: 300;
   color: var(--text-on-dark);
   background: var(--bg-black);
-  border-bottom: 1px solid var(--border-dark);
+  will-change: transform, opacity;
 }
 
 .header-inner {
@@ -339,17 +342,38 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 /* ---------------------------------------------------
-   Mask-wipe transitions — one fixed overlay, scroll-scrubbed
+   Background rhythm field — fixed behind everything; JS crossfades its
+   background-color continuously as the page scrolls. Sections keep their
+   own solid background colour as the static/reduced-motion fallback and
+   only turn transparent (revealing this field) once JS confirms motion
+   is enabled — see body.motion-active below.
 --------------------------------------------------- */
 
-.wipe-overlay {
+.bg-field {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: -1;
   pointer-events: none;
-  clip-path: circle(0% at 50% 100%);
-  will-change: clip-path;
-  display: none;
+  background: var(--bg-black);
+}
+
+body.motion-active [data-theme] {
+  background-color: transparent;
+}
+
+/* ---------------------------------------------------
+   Subtle grain texture — static, non-distracting depth layer
+--------------------------------------------------- */
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* ---------------------------------------------------
@@ -535,17 +559,19 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   gap: 1.5rem;
 }
 
+.services-grid,
+.testimonials,
+.contact-grid { perspective: 1000px; }
+
 .service-card {
   padding: 2.25rem 2rem;
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--bg-panel);
-  transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+  transition: border-color 0.25s var(--ease);
+  will-change: transform;
 }
-.service-card:hover {
-  border-color: var(--border-strong);
-  transform: translateY(-4px);
-}
+.service-card:hover { border-color: var(--border-strong); }
 
 .service-icon { color: var(--accent); margin-bottom: 1.5rem; }
 
@@ -634,6 +660,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--bg-panel);
+  will-change: transform;
 }
 .testimonial p {
   font-size: 1.05rem;
@@ -681,6 +708,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   border-radius: 16px;
   overflow: hidden;
   background: var(--bg-panel);
+  will-change: clip-path;
 }
 
 .kenburns-media {
@@ -794,6 +822,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   flex-direction: column;
   align-items: flex-start;
   gap: 1rem;
+  will-change: transform;
 }
 
 .contact-direct-label {
@@ -880,6 +909,22 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 .reveal {
   opacity: 1;
   will-change: opacity, transform;
+}
+
+/* ---------------------------------------------------
+   Split-word typography reveal — built at runtime by main.js. Base state
+   keeps plain text visible (no JS / reduced motion); .split-visual only
+   exists once JS has already rebuilt the element, so there's no flash.
+--------------------------------------------------- */
+
+.split-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+}
+.split-word-inner {
+  display: inline-block;
+  will-change: transform, opacity, filter;
 }
 
 /* ---------------------------------------------------

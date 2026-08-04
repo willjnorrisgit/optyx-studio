@@ -2,35 +2,6 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 const isSmallScreen = () => window.innerWidth <= 760;
 
 // ---------------------------------------------------
-// Cubic-bezier easing (mirrors the --ease / --ease-cinematic CSS curves)
-// so scroll-linked motion is shaped by the same custom curves used for
-// discrete transitions, rather than a raw linear scroll value.
-// ---------------------------------------------------
-function makeCubicBezier(x1, y1, x2, y2) {
-  const A = (a1, a2) => 1 - 3 * a2 + 3 * a1;
-  const B = (a1, a2) => 3 * a2 - 6 * a1;
-  const C = (a1) => 3 * a1;
-  const calcBezier = (t, a1, a2) => ((A(a1, a2) * t + B(a1, a2)) * t + C(a1)) * t;
-  const getSlope = (t, a1, a2) => 3 * A(a1, a2) * t * t + 2 * B(a1, a2) * t + C(a1);
-
-  return function easeFn(x) {
-    if (x <= 0) return 0;
-    if (x >= 1) return 1;
-    let t = x;
-    for (let i = 0; i < 6; i++) {
-      const slope = getSlope(t, x1, x2);
-      if (Math.abs(slope) < 1e-6) break;
-      t -= (calcBezier(t, x1, x2) - x) / slope;
-    }
-    return calcBezier(t, y1, y2);
-  };
-}
-
-const easeCinematic = makeCubicBezier(0.65, 0, 0.35, 1);
-const easeOutCinematic = makeCubicBezier(0.16, 1, 0.3, 1);
-const clamp01 = (n) => Math.min(Math.max(n, 0), 1);
-
-// ---------------------------------------------------
 // Intro — letter-by-letter reveal, once per session
 // ---------------------------------------------------
 const intro = document.getElementById('intro');
@@ -98,202 +69,337 @@ if (prefersReducedMotion) {
 }
 
 // ---------------------------------------------------
-// Theme zones — every [data-theme] section boundary becomes a
-// scroll-scrubbed mask-wipe zone. Recomputed on load/resize since it
-// depends on layout (offsetTop).
+// Motion system — GSAP + ScrollTrigger + Lenis. Skipped entirely under
+// prefers-reduced-motion: every section keeps its own static CSS
+// background/opacity (the .reveal / [data-theme] defaults already in
+// styles.css), so that fallback needs no JS branching of its own.
 // ---------------------------------------------------
-const themeSections = Array.from(document.querySelectorAll('[data-theme]'));
-const wipeOverlay = document.getElementById('wipeOverlay');
-let wipeZones = [];
+if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
+  gsap.registerPlugin(ScrollTrigger);
+  document.body.classList.add('motion-active');
 
-function computeWipeZones() {
-  wipeZones = [];
-  const vh = window.innerHeight;
-  for (let i = 0; i < themeSections.length - 1; i++) {
-    const current = themeSections[i];
-    const next = themeSections[i + 1];
-    if (current.dataset.theme === next.dataset.theme) continue;
-    // Span the wipe across exactly the scroll range where the raw section
-    // seam would otherwise be visible in the viewport: from the moment the
-    // outgoing section's bottom edge first appears, to the moment the
-    // incoming section fully fills the viewport.
-    let seamStart = current.offsetTop + current.offsetHeight - vh;
-    const seamEnd = next.offsetTop;
-    // Sections shorter than one viewport (the punctuation beats) can have
-    // their entry and exit seams overlap — clamp so zones never overlap,
-    // otherwise the later zone would jump-start mid-progress instead of at 0.
-    const prev = wipeZones[wipeZones.length - 1];
-    if (prev) seamStart = Math.max(seamStart, prev.end);
-    wipeZones.push({ start: seamStart, end: seamEnd, toTheme: next.dataset.theme });
+  let lenis = null;
+  if (window.Lenis) {
+    lenis = new Lenis({ autoRaf: false, duration: 1.1 });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
   }
-}
 
-function themeAt(y) {
-  for (const zone of wipeZones) {
-    if (y >= zone.start && y <= zone.end) {
-      const t = (y - zone.start) / (zone.end - zone.start);
-      const fromTheme = zone.toTheme === 'light' ? 'dark' : 'light';
-      return t < 0.5 ? fromTheme : zone.toTheme;
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      const id = link.getAttribute('href');
+      if (!id || id === '#') return;
+      const target = document.querySelector(id);
+      if (!target) return;
+      event.preventDefault();
+      const header = document.querySelector('.site-header');
+      const offset = header ? -header.offsetHeight : 0;
+      if (lenis) {
+        lenis.scrollTo(target, { offset, duration: 1.4 });
+      } else {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
+  // ---------------------------------------------------
+  // Theme lookup — shared by the persistent badge and (indirectly) the
+  // background-rhythm zones below.
+  // ---------------------------------------------------
+  const themeSections = Array.from(document.querySelectorAll('[data-theme]'));
+
+  function themeAt(y) {
+    let current = themeSections[0];
+    for (const section of themeSections) {
+      if (section.offsetTop <= y + window.innerHeight * 0.5) current = section;
+      else break;
+    }
+    return current ? current.dataset.theme : 'dark';
+  }
+
+  // ---------------------------------------------------
+  // Header — hides on scroll down, reappears on scroll up. Persistent
+  // drifting badge rides the same master scroll listener.
+  // ---------------------------------------------------
+  const header = document.querySelector('.site-header');
+  const badgeDrift = document.getElementById('badgeDrift');
+  let headerHidden = false;
+
+  function updateHeader(y, direction) {
+    if (!header) return;
+    const shouldHide = y > 80 && direction === 1;
+    if (shouldHide === headerHidden) return;
+    headerHidden = shouldHide;
+    gsap.to(header, {
+      yPercent: shouldHide ? -100 : 0,
+      autoAlpha: shouldHide ? 0 : 1,
+      duration: 0.5,
+      ease: 'power3.out',
+      overwrite: true,
+    });
+  }
+
+  function updateBadgeDrift(y) {
+    if (!badgeDrift) return;
+    const dx = Math.sin(y * 0.0015) * 220;
+    const dy = Math.cos(y * 0.0011) * 140;
+    const rot = y * 0.06;
+    const scale = 0.85 + Math.sin(y * 0.002) * 0.25;
+    badgeDrift.style.transform =
+      `translate(calc(-50% + ${dx.toFixed(1)}px), calc(-50% + ${dy.toFixed(1)}px)) rotate(${rot.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+    badgeDrift.classList.toggle('on-light', themeAt(y) === 'light');
+  }
+
+  ScrollTrigger.create({
+    start: 0,
+    end: () => document.documentElement.scrollHeight - window.innerHeight,
+    onUpdate(self) {
+      const y = self.scroll();
+      updateHeader(y, self.direction);
+      updateBadgeDrift(y);
+    },
+  });
+
+  // ---------------------------------------------------
+  // Hero logo — scroll-scrubbed parallax follow + fade as the hero
+  // gives way to the next section.
+  // ---------------------------------------------------
+  const hero = document.getElementById('hero');
+  const heroLogo = document.querySelector('.hero-logo');
+
+  if (hero && heroLogo) {
+    gsap.to(heroLogo, {
+      yPercent: -55,
+      autoAlpha: 0,
+      ease: 'none',
+      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true },
+    });
+  }
+
+  // ---------------------------------------------------
+  // Background rhythm — a fixed field behind everything, crossfaded
+  // continuously via scroll-scrubbed colour tweens. Each transition spans
+  // roughly one-and-a-half sections' worth of scroll distance, centred on
+  // (not locked to) the actual section seam, so the shift feels like it
+  // flows through the content rather than snapping at a hard boundary.
+  // ---------------------------------------------------
+  const bgField = document.getElementById('bgField');
+
+  if (bgField) {
+    const rootStyle = getComputedStyle(document.documentElement);
+    const colorDark = rootStyle.getPropertyValue('--bg-black').trim();
+    const colorLight = rootStyle.getPropertyValue('--bg').trim();
+    const colorOf = (theme) => (theme === 'light' ? colorLight : colorDark);
+
+    gsap.set(bgField, { backgroundColor: colorOf(themeSections[0] ? themeSections[0].dataset.theme : 'dark') });
+
+    let prevEndFn = () => 0;
+    for (let i = 0; i < themeSections.length - 1; i++) {
+      const current = themeSections[i];
+      const next = themeSections[i + 1];
+      if (current.dataset.theme === next.dataset.theme) continue;
+
+      // Freeze the current prevEndFn reference per-iteration: startFn is only
+      // invoked later (lazily, by ScrollTrigger), by which point the loop has
+      // already finished and a shared mutable variable would just hold the
+      // last iteration's value for every closure.
+      const capturedPrevEnd = prevEndFn;
+      const span = () => (document.documentElement.scrollHeight / themeSections.length) * 1.5;
+      const startFn = () => Math.max(next.offsetTop - span() / 2, capturedPrevEnd());
+      const endFn = () => next.offsetTop + span() / 2;
+
+      gsap.fromTo(
+        bgField,
+        { backgroundColor: colorOf(current.dataset.theme) },
+        {
+          backgroundColor: colorOf(next.dataset.theme),
+          ease: 'none',
+          scrollTrigger: { start: startFn, end: endFn, scrub: true },
+        }
+      );
+
+      prevEndFn = endFn;
     }
   }
-  let current = themeSections[0];
-  for (const s of themeSections) {
-    if (s.offsetTop <= y + 100) current = s; else break;
-  }
-  return current ? current.dataset.theme : 'dark';
-}
 
-function updateWipe() {
-  if (!wipeOverlay) return;
-  if (prefersReducedMotion) {
-    wipeOverlay.style.display = 'none';
-    return;
-  }
-  const y = window.scrollY;
-  const active = wipeZones.find((zone) => y >= zone.start && y <= zone.end);
-  if (!active) {
-    wipeOverlay.style.display = 'none';
-    return;
-  }
-  const t = clamp01((y - active.start) / (active.end - active.start));
-  const eased = easeCinematic(t);
-  wipeOverlay.style.display = 'block';
-  wipeOverlay.style.background = active.toTheme === 'light' ? 'var(--bg)' : 'var(--bg-black)';
-  wipeOverlay.style.clipPath = `circle(${(eased * 150).toFixed(1)}% at 50% 100%)`;
-}
+  // ---------------------------------------------------
+  // Typography — word-level reveal with a slight upward move and a
+  // blur-to-sharp finish. Runs once per element on scroll-in.
+  // Accessibility: the original text is preserved via aria-label on the
+  // element and the visual split spans are hidden from assistive tech.
+  // ---------------------------------------------------
+  function splitWords(el) {
+    const text = el.textContent.trim();
+    if (!text) return [];
+    el.setAttribute('aria-label', text);
+    el.textContent = '';
 
-// ---------------------------------------------------
-// Persistent drifting badge — connective thread through the whole
-// scroll sequence, colour-inverting against whatever theme is current.
-// ---------------------------------------------------
-const badgeDrift = document.getElementById('badgeDrift');
+    const visual = document.createElement('span');
+    visual.className = 'split-visual';
+    visual.setAttribute('aria-hidden', 'true');
 
-if (badgeDrift && prefersReducedMotion) {
-  badgeDrift.style.display = 'none';
-}
+    const words = text.split(/\s+/);
+    words.forEach((word, i) => {
+      const outer = document.createElement('span');
+      outer.className = 'split-word';
+      const inner = document.createElement('span');
+      inner.className = 'split-word-inner';
+      inner.textContent = word;
+      outer.appendChild(inner);
+      visual.appendChild(outer);
+      if (i < words.length - 1) visual.appendChild(document.createTextNode(' '));
+    });
 
-function updateBadgeDrift() {
-  if (!badgeDrift || prefersReducedMotion) return;
-  const y = window.scrollY;
-  const dx = Math.sin(y * 0.0015) * 220;
-  const dy = Math.cos(y * 0.0011) * 140;
-  const rot = y * 0.06;
-  const scale = 0.85 + Math.sin(y * 0.002) * 0.25;
-  badgeDrift.style.transform =
-    `translate(calc(-50% + ${dx.toFixed(1)}px), calc(-50% + ${dy.toFixed(1)}px)) rotate(${rot.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
-  badgeDrift.classList.toggle('on-light', themeAt(y) === 'light');
-}
-
-// ---------------------------------------------------
-// Cinematic scroll engine — fade in/out, parallax, Ken Burns, depth
-// drift. Everything is a direct function of scroll position (no CSS
-// transition racing a moving target), eased through the cubic-bezier
-// curves above.
-// ---------------------------------------------------
-const revealEls = document.querySelectorAll('.reveal');
-const parallaxEls = document.querySelectorAll('.parallax-layer');
-const kenburnsEls = document.querySelectorAll('.kenburns-media');
-
-function updateReveal(el, vh) {
-  if (prefersReducedMotion) {
-    el.style.opacity = 1;
-    el.style.transform = '';
-    return;
-  }
-  const rect = el.getBoundingClientRect();
-  const centerNorm = (rect.top + rect.height / 2) / vh;
-
-  let opacity = 1;
-  let rise = 0;
-
-  if (centerNorm > 0.9) {
-    // entering from below the fold
-    const t = clamp01((1.15 - centerNorm) / 0.25);
-    const eased = easeOutCinematic(t);
-    opacity = eased;
-    rise = (1 - eased) * 28;
-  } else if (centerNorm < 0.15) {
-    // exiting past the top
-    const t = clamp01((centerNorm + 0.15) / 0.3);
-    const eased = easeCinematic(t);
-    opacity = eased;
-    rise = -(1 - eased) * 28;
+    el.appendChild(visual);
+    return Array.from(visual.querySelectorAll('.split-word-inner'));
   }
 
-  // optional depth-drift: foreground content in the video beats moves
-  // at its own speed, distinct from the near-static background video
-  // and the slower-drifting big background type.
-  let drift = 0;
-  const speed = parseFloat(el.dataset.speed || '0');
-  if (speed && !isSmallScreen()) {
-    const centerOffset = rect.top + rect.height / 2 - vh / 2;
-    drift = -centerOffset * speed;
+  const mobileType = isSmallScreen();
+  document.querySelectorAll('.eyebrow, .section-title, .why-sub, .beat-caption').forEach((el) => {
+    const words = splitWords(el);
+    if (!words.length) return;
+    gsap.fromTo(
+      words,
+      { yPercent: 115, autoAlpha: 0, filter: `blur(${mobileType ? 4 : 8}px)` },
+      {
+        yPercent: 0,
+        autoAlpha: 1,
+        filter: 'blur(0px)',
+        duration: 1,
+        ease: 'power3.out',
+        stagger: mobileType ? 0.03 : 0.045,
+        scrollTrigger: { trigger: el, start: 'top 90%', once: true },
+      }
+    );
+  });
+
+  // ---------------------------------------------------
+  // Generic reveal — everything else marked .reveal fades and rises into
+  // place once, on scroll-in. Elements that also carry a parallax
+  // data-speed skip the rise (parallax owns their y) and scale in
+  // instead, so the two effects don't fight over the same property.
+  // ---------------------------------------------------
+  const splitSelector = '.eyebrow, .section-title, .why-sub';
+  gsap.utils.toArray('.reveal').forEach((el) => {
+    if (el.matches(splitSelector)) return;
+    if (el.matches('.service-card, .testimonial')) return;
+    const hasParallax = el.hasAttribute('data-speed');
+    gsap.fromTo(
+      el,
+      { autoAlpha: 0, y: hasParallax ? 0 : 28, scale: hasParallax ? 0.96 : 1 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+      }
+    );
+  });
+
+  ['.service-card', '.testimonial'].forEach((selector) => {
+    ScrollTrigger.batch(selector, {
+      start: 'top 88%',
+      once: true,
+      onEnter: (batch) =>
+        gsap.fromTo(
+          batch,
+          { autoAlpha: 0, y: 28 },
+          { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.12 }
+        ),
+    });
+  });
+
+  // ---------------------------------------------------
+  // Case-study image — mask reveal on entry, subtle continuous
+  // scale/drift (Ken Burns) while it's in view.
+  // ---------------------------------------------------
+  const kenburnsFrame = document.querySelector('.kenburns-frame');
+  const kenburnsMedia = document.querySelector('.kenburns-media');
+
+  if (kenburnsFrame && kenburnsMedia) {
+    gsap.fromTo(
+      kenburnsFrame,
+      { clipPath: 'inset(0% 0% 100% 0%)' },
+      {
+        clipPath: 'inset(0% 0% 0% 0%)',
+        duration: 1.1,
+        ease: 'power3.inOut',
+        scrollTrigger: { trigger: kenburnsFrame, start: 'top 85%', once: true },
+      }
+    );
+
+    gsap.to(kenburnsMedia, {
+      scale: 1.12,
+      xPercent: 3,
+      ease: 'none',
+      scrollTrigger: { trigger: kenburnsFrame, start: 'top bottom', end: 'bottom top', scrub: true },
+    });
   }
 
-  el.style.opacity = opacity.toFixed(3);
-  el.style.transform = `translateY(${(rise + drift).toFixed(2)}px)`;
+  // ---------------------------------------------------
+  // Responsive motion — matchMedia keeps desktop and mobile as distinct
+  // configurations (not one scaled down into the other): mobile gets
+  // gentler parallax and skips hover-only card tilt entirely.
+  // ---------------------------------------------------
+  const mm = gsap.matchMedia();
+
+  mm.add(
+    {
+      isMobile: '(max-width: 760px)',
+      canHover: '(hover: hover) and (pointer: fine)',
+    },
+    (context) => {
+      const { isMobile, canHover } = context.conditions;
+      const intensity = isMobile ? 0.45 : 1;
+
+      gsap.utils.toArray('[data-speed]').forEach((el) => {
+        const speed = (parseFloat(el.dataset.speed) || 0.2) * intensity;
+        gsap.fromTo(
+          el,
+          { y: () => -window.innerHeight * speed },
+          {
+            y: () => window.innerHeight * speed,
+            ease: 'none',
+            scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true },
+          }
+        );
+      });
+
+      if (canHover) {
+        document.querySelectorAll('.service-card, .testimonial, .contact-direct').forEach((card) => {
+          const quickX = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' });
+          const quickY = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' });
+          const quickLift = gsap.quickTo(card, 'y', { duration: 0.5, ease: 'power3.out' });
+
+          const onMove = (event) => {
+            const rect = card.getBoundingClientRect();
+            const px = (event.clientX - rect.left) / rect.width - 0.5;
+            const py = (event.clientY - rect.top) / rect.height - 0.5;
+            quickX(px * 8);
+            quickY(-py * 8);
+            quickLift(-6);
+          };
+          const onLeave = () => {
+            quickX(0);
+            quickY(0);
+            quickLift(0);
+          };
+
+          card.addEventListener('mousemove', onMove);
+          card.addEventListener('mouseleave', onLeave);
+        });
+      }
+    }
+  );
+
+  window.addEventListener('load', () => ScrollTrigger.refresh());
+} else {
+  const badgeDrift = document.getElementById('badgeDrift');
+  if (badgeDrift) badgeDrift.style.display = 'none';
 }
-
-function updateParallax(el, vh) {
-  if (prefersReducedMotion || isSmallScreen()) {
-    el.style.transform = '';
-    return;
-  }
-  const speed = parseFloat(el.dataset.speed || '0.25');
-  const rect = el.getBoundingClientRect();
-  const centerOffset = rect.top + rect.height / 2 - vh / 2;
-  el.style.transform = `translate3d(0, ${(-centerOffset * speed).toFixed(2)}px, 0)`;
-}
-
-function updateKenBurns(el, vh) {
-  if (prefersReducedMotion) {
-    el.style.transform = '';
-    return;
-  }
-  const intensity = isSmallScreen() ? 0.5 : 1;
-  const rect = el.getBoundingClientRect();
-  const centerNorm = clamp01((vh - rect.top) / (vh + rect.height));
-  const eased = easeCinematic(centerNorm);
-
-  const scale = 1 + 0.1 * eased * intensity;
-  const shiftX = (eased - 0.5) * 18 * intensity;
-  const tilt = (eased - 0.5) * 3 * intensity;
-
-  el.style.transform = `scale(${scale.toFixed(3)}) translateX(${shiftX.toFixed(2)}px) rotate(${tilt.toFixed(2)}deg)`;
-}
-
-let ticking = false;
-function runScrollFx() {
-  const vh = window.innerHeight;
-  revealEls.forEach((el) => updateReveal(el, vh));
-  parallaxEls.forEach((el) => updateParallax(el, vh));
-  kenburnsEls.forEach((el) => updateKenBurns(el, vh));
-  updateWipe();
-  updateBadgeDrift();
-  ticking = false;
-}
-
-function onScrollOrResize() {
-  if (!ticking) {
-    requestAnimationFrame(runScrollFx);
-    ticking = true;
-  }
-}
-
-function onResize() {
-  computeWipeZones();
-  onScrollOrResize();
-}
-
-computeWipeZones();
-window.addEventListener('scroll', onScrollOrResize, { passive: true });
-window.addEventListener('resize', onResize);
-runScrollFx();
-// re-run once fonts/layout settle, so initial positions/zones are accurate
-window.addEventListener('load', () => {
-  computeWipeZones();
-  runScrollFx();
-});
 
 // ---------------------------------------------------
 // Contact form — placeholder handling until a real backend

@@ -11,7 +11,7 @@ Plain HTML/CSS/JS, no build step, deploy-ready for GitHub Pages.
 ```
 index.html                                Page markup
 css/styles.css                            All styling
-js/main.js                                Intro, mask-wipe/scroll engine, nav, contact form
+js/main.js                                Intro, GSAP/ScrollTrigger/Lenis motion system, nav, contact form
 assets/favicon.svg                        Browser tab icon
 assets/video/abstract-art-03.mp4          Hero background loop
 assets/video/dot-waves.mp4                First punctuation-beat section background loop
@@ -40,27 +40,61 @@ Hero (black, video)
             → Footer (off-white — no colour of its own)
 ```
 
-Every black/off-white boundary uses a **scroll-scrubbed circular mask
-wipe** (`#wipeOverlay` in `index.html`, driven by `js/main.js`) instead of
-a crossfade: a fixed, full-viewport overlay whose `clip-path: circle()`
-radius is driven directly by scroll position through an eased
-(`--ease-cinematic`) cubic-bezier curve, growing from the bottom of the
-viewport to fully cover it. Zone boundaries are computed from the actual
-section `offsetTop`/`offsetHeight` at load/resize, so they always span
-exactly the scroll range where the raw section seam would otherwise be
-visible — and are clamped so adjacent zones never overlap (short sections
-can otherwise cause a zone to start mid-progress instead of at 0%).
+Motion runs on **GSAP + ScrollTrigger** for all scroll-linked animation and
+**Lenis** for smooth, momentum-based scrolling site-wide, both loaded via
+CDN (`index.html`) and wired up in `js/main.js`. Lenis drives GSAP's own
+ticker (`gsap.ticker.add((t) => lenis.raf(t * 1000))` with `lagSmoothing(0)`)
+so `ScrollTrigger` and Lenis stay perfectly in sync. Everything is gated
+behind `prefers-reduced-motion`: when it's set, none of the below runs and
+every section just shows its own static CSS background/opacity — a plain,
+fully-legible fallback with zero extra branching required.
+
+**Background rhythm.** Instead of a per-section colour toggle, a fixed
+field (`#bgField`) sits behind everything and its `background-color` is
+crossfaded by scroll-scrubbed GSAP tweens. Each black/off-white boundary
+gets its own tween spanning roughly one-and-a-half sections' worth of
+scroll distance, centred on (not locked to) the actual section seam, so
+the shift feels like it flows through the content rather than snapping at
+a hard line — see the `bgField` loop in `js/main.js`. Sections turn
+transparent only once `body.motion-active` is present (i.e. once JS/motion
+is confirmed running), so the reduced-motion fallback is just each
+section's own solid CSS colour, unchanged.
+
+**Header & hero.** The header hides on scroll-down and reappears on
+scroll-up via a single master `ScrollTrigger` (also driving the badge, see
+below). The hero wordmark follows the scroll with a parallax offset and
+fades out over exactly one hero-height of scroll (`scrub: true` tied to
+the hero section), rather than a fixed-duration animation.
+
+**Typography.** Headings/eyebrows/captions are split into words at
+runtime (`splitWords()` in `js/main.js`) and revealed with a slight upward
+move plus a blur-to-sharp finish, staggered per word. The original text is
+preserved via `aria-label` on the element, with the visual split spans
+marked `aria-hidden`, so screen readers get the plain sentence and nothing
+is ever hidden from crawlers — the un-split plain text is what's in the
+DOM until JS runs, and remains the whole story under reduced motion.
+
+**Depth & images.** Any element with `data-speed` (the background blobs,
+`.beat-bigtype`, `.beat-inner`, the case-study image) gets an independent
+scroll-scrubbed parallax offset, scaled down for mobile via
+`gsap.matchMedia()`. The case-study image also gets a `clip-path` mask
+reveal on scroll-in plus a continuous subtle scale/drift while it's in
+view.
+
+**Cards & buttons.** On `(hover: hover) and (pointer: fine)` devices only,
+service cards, testimonials and the direct-contact panel get a
+cursor-follow 3D tilt + lift via `gsap.quickTo`; touch devices get none of
+that and rely on the scroll-reveal entrance alone. Buttons keep their
+existing CSS hover lift and get a plain `:active` press-scale.
 
 A small ring-and-dot badge (`#badgeDrift`) drifts continuously across the
 screen for the entire scroll — position, scale and rotation are all a
-function of `scrollY` — and inverts its stroke colour between white and
-black depending on the current section's theme, using the same zone data
-as the wipe.
+function of scroll position — and inverts its stroke colour between white
+and black depending on the current section's theme.
 
-The two video sections layer a near-static background video, a large
-faint background word drifting slowly, and a foreground caption drifting
-faster, for a sense of depth (`.beat-bigtype` / `.beat-inner[data-speed]`
-in `index.html`).
+A subtle fixed grain texture (`body::after`) sits above everything at low
+opacity with `mix-blend-mode: overlay` for a bit of non-distracting depth;
+it's static, so it needs no reduced-motion gating.
 
 ## Local development
 
