@@ -127,7 +127,7 @@ if (heroSpline) {
 
     const splineScript = document.createElement('script');
     splineScript.type = 'module';
-    splineScript.src = 'https://unpkg.com/@splinetool/viewer/build/spline-viewer.js';
+    splineScript.src = 'https://unpkg.com/@splinetool/viewer@1.12.98/build/spline-viewer.js';
     splineScript.onerror = () => {
       if (!settled) {
         settled = true;
