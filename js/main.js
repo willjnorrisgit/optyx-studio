@@ -318,8 +318,15 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   // the block is already about half-scrolled into view (rather than the
   // instant it peeks in at the very bottom) and finishes soon after, so it
   // reads as prompt rather than a long, slow reveal.
+  //
+  // Titles (.eyebrow/.section-title) are deliberately NOT in this list —
+  // they render immediately with no animation, already in place by the
+  // time a section scrolls into view. Only the text underneath a title
+  // (.why-sub, .beat-caption) gets this merge-in-as-you-scroll treatment,
+  // the reverse of how this used to work (title animated in, sub-text
+  // didn't get its own distinct treatment).
   const mobileType = isSmallScreen();
-  document.querySelectorAll('.eyebrow, .section-title, .why-sub, .beat-caption').forEach((el) => {
+  document.querySelectorAll('.why-sub, .beat-caption').forEach((el) => {
     const words = splitWords(el);
     if (!words.length) return;
     gsap.fromTo(
@@ -341,7 +348,13 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   // place once, on scroll-in. Elements that also carry a parallax
   // data-speed skip the rise (parallax owns their y) and scale in
   // instead, so the two effects don't fight over the same property.
-  // ---------------------------------------------------
+  //
+  // .eyebrow/.section-title still carry the "reveal" class in the markup
+  // but are excluded here on purpose — they're titles, not sub-text (see
+  // the word-split loop above), so they should get no entrance animation
+  // of any kind, from either system, and just render in place immediately.
+  // .why-sub is excluded here too since the word-split loop above already
+  // owns it.
   const splitSelector = '.eyebrow, .section-title, .why-sub';
   gsap.utils.toArray('.reveal').forEach((el) => {
     if (el.matches(splitSelector)) return;

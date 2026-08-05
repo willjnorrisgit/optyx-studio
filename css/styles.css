@@ -542,19 +542,16 @@ body::after {
   background: var(--bg-black);
 }
 
-/* Scaled down from full-bleed so the design reads as a contained object
-   with real black margin around it (closer to the reference layout)
-   rather than edge-to-edge — the existing top/height bleed already
-   over-covers the viewport generously, so shrinking it still leaves no
-   exposed edges through the pin's own vertical travel. GSAP only tweens
-   `y` on this element (see heroTl in js/main.js); it reads this scale as
-   the element's baseline transform and composes the two rather than
-   overwriting it. */
+/* Full-bleed, edge-to-edge — no contained/scaled-down treatment (a
+   previous round shrunk this into a boxed object with black margin; the
+   dot-wave clip reads better filling the whole hero, matching the
+   reference). A little extra height/top bleed keeps the pin's own
+   vertical parallax (see heroTl in js/main.js, which only tweens `y` on
+   this element) from ever exposing an edge. */
 .hero-video {
-  object-position: 62% 50%;
-  top: -25%;
-  height: 150%;
-  transform: scale(0.72);
+  top: -8%;
+  height: 116%;
+  object-position: 50% 45%;
 }
 
 /* Three stacked scrims: the original top one clears the nav area; the
@@ -798,12 +795,19 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   border-radius: 18px;
   background: var(--bg-panel);
   color: var(--text-panel);
-  font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(1.15rem, 1.8vw, 1.5rem);
   white-space: nowrap;
   transition: transform 0.35s var(--ease-premium), box-shadow 0.35s var(--ease-premium);
 }
+/* Each brand keeps its own real wordmark style instead of the site's own
+   --font-display on every label — reads as that brand's actual badge
+   rather than our type applied to their name. Default: a neutral system
+   sans (most of these brands' own faces are close to this family), with
+   per-brand overrides where the real mark differs noticeably. */
+.marquee-item { font-family: Arial, Helvetica, sans-serif; }
+.marquee-item--wordpress { font-family: Georgia, 'Times New Roman', serif; }
+.marquee-item--stripe { font-family: Arial, Helvetica, sans-serif; text-transform: lowercase; letter-spacing: -0.01em; }
 /* Per-card hover instead of pausing the whole loop — it keeps scrolling,
    the card under the cursor just lifts and pops above its neighbours. */
 .marquee-item:hover {
@@ -1417,21 +1421,17 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   .testimonials { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
 
-  /* The desktop cover+bleed+scale combo is tuned for a wide, landscape
+  /* The desktop cover+bleed combo is tuned for a wide, landscape
      viewport — on anything narrower it was cropping most of the design
      out of frame instead of just adding margin. `contain` guarantees the
      whole video stays visible instead, letterboxed on a background
      that's already the same jet black, so it reads as intentional
-     framing rather than a crop. Keeps a modest bleed (not the desktop
-     150%) purely so the pin's own y-parallax has room to move within
-     without the letterboxed video clipping against .hero's own
-     overflow:hidden edge. */
+     framing rather than a crop. */
   .hero-video {
     object-fit: contain;
     object-position: center;
     top: -8%;
     height: 116%;
-    transform: none;
   }
 }
 

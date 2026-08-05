@@ -14,20 +14,23 @@ css/styles.css                            All styling
 js/main.js                                Intro, GSAP/ScrollTrigger/Lenis motion system, nav, contact form
 assets/favicon.svg                        Browser tab icon (plain ring mark, no badge — see below)
 assets/optyx-badge.svg                    Unused for now (see "Known placeholders") — not referenced anywhere
-assets/video/abstract-art-03.mp4          Hero background loop
+assets/video/dot-waves.mp4                Hero background loop (white/blue dot-wave particles)
+assets/video/abstract-art-03.mp4          Unused — kept in assets/, no longer referenced (see below)
 assets/video/motion-trail.mp4             Unused — kept in assets/, no longer referenced (see below)
 assets/video/blue-flow.mp4                The site's one remaining punctuation-beat background loop
 assets/video/grey-marketing-banner.mp4    Unused — kept in assets/, no longer referenced (see below)
 ```
 
-`abstract-art-03` and `motion-trail` already looped cleanly as delivered
-(verified by diffing their own first/last frame — well under the
-threshold that reads as a visible jump) and were left alone. `blue-flow`
-didn't — it's re-encoded from the source with a 0.4s crossfade blended
-across the loop point (same technique used on the old `dot-waves` clip
-this replaced): the true last 0.4s dissolves into the true first 0.4s,
-so what plays is a shorter loop with no seam rather than the original
-full-length clip with one.
+`motion-trail` already looped cleanly as delivered (verified by diffing
+its own first/last frame — well under the threshold that reads as a
+visible jump) and was left alone. `blue-flow` and the current
+`dot-waves` (a supplied clip, not the original `dot-waves` this project
+had years ago under the same filename — this is a distinct, newer file)
+didn't loop cleanly — both are re-encoded from their source with a
+crossfade blended across the loop point (0.4s for `blue-flow`, 0.5s for
+`dot-waves`, via an `xfade` filter blending the true tail into the true
+head): what plays is a shorter loop with no seam rather than the original
+full-length clip with a visible jump at the wrap-around.
 
 ## Page structure & motion system
 
@@ -121,11 +124,12 @@ A bold `.hero-corner-badge` ("Superior Web Design") sits top-right of the
 hero, in `--font-display` and styled to match `.logo-word`'s treatment
 (letter-spacing + text-stroke) — positioned to clear the floating header
 pill above it and the vertically-centred `.hero-stats` below it. Below
-the hero CTA, `.hero-trust` is a small "★★★★★ 5-star rated by LockOn"
+the hero CTA, `.hero-trust` is a small "★★★★★ 5-star rated by clients"
 line in warm gold — it reuses the same LockOn quote in the Why Us section
 that's still a draft pending Guy Lockwood's approval (see "Known
 placeholders"), so it shouldn't be read as a confirmed, sourced rating
-until that's actually signed off.
+until that's actually signed off, even though the visible copy no longer
+names LockOn directly.
 
 The hero itself is
 **pinned** (`pin: true`) for one extra viewport height of scroll: the
@@ -134,25 +138,25 @@ badge to animate alongside it — `heroTl`'s badge tweens are gated behind
 `if (heroLogo)` and simply skip themselves while `.hero-logo` doesn't
 exist in the DOM, so the video's own motion isn't affected either way).
 The headline/subhead/CTA/stat blocks sit outside the pin timeline
-entirely and stay static throughout. The video itself is scaled down
-(`transform: scale(0.72)` on `.hero-video`) so it reads as a contained
-object with real black margin around it rather than edge-to-edge — GSAP
-only tweens its `y`, and composes that on top of the CSS scale rather
-than overwriting it, so the pin's own parallax still works unchanged.
-Three stacked gradients in `.hero-overlay` additionally darken the
-lower-left quadrant specifically (where the headline/subhead/CTA sit)
-regardless of what the looping video is doing behind them at any given
-moment, rather than relying on the video's own crop to keep that zone
-clear. The headline itself is uppercase with a small amount of positive
-tracking (`.hero-headline`) to match the reference layout's bold
-geometric look, rather than the tighter negative-tracked sentence case it
-had before.
+entirely and stay static throughout. The video itself is **full-bleed,
+edge-to-edge** (a previous round scaled it down into a contained box with
+black margin around it; that treatment was dropped in favour of filling
+the whole hero, matching the reference this was built from) — GSAP only
+tweens its `y` (see `heroTl`), which still works unchanged since there's
+no baseline transform left to compose against. Three stacked gradients in
+`.hero-overlay` additionally darken the lower-left quadrant specifically
+(where the headline/subhead/CTA sit) regardless of what the looping video
+is doing behind them at any given moment, rather than relying on the
+video's own crop to keep that zone clear. The headline itself is
+uppercase with a small amount of positive tracking (`.hero-headline`) to
+match the reference layout's bold geometric look, rather than the
+tighter negative-tracked sentence case it had before.
 
-The desktop `cover` + bleed + `scale(0.72)` combo is tuned for a wide,
-landscape viewport — below 900px wide (covers both actual mobile devices
-and a narrow/minimised desktop window, since it's a width breakpoint, not
-a device check) it was cropping most of the design out of frame instead
-of just adding margin. A media-query override switches `.hero-video` to
+The desktop `cover` + bleed combo is tuned for a wide, landscape viewport
+— below 900px wide (covers both actual mobile devices and a
+narrow/minimised desktop window, since it's a width breakpoint, not a
+device check) it was cropping most of the design out of frame instead of
+just adding margin. A media-query override switches `.hero-video` to
 `object-fit: contain` there instead, guaranteeing the whole clip stays
 visible (letterboxed against the same jet black rather than cropped),
 with a smaller bleed retained purely so the pin's own vertical parallax
@@ -185,9 +189,13 @@ so the two spots that used to ask `--font-display` for 800
 (`.intro-primary`, `.service-num`) are capped at 700 now rather than
 triggering a synthetic-bold fallback.
 
-Headings/eyebrows/captions are split into words at
-runtime (`splitWords()` in `js/main.js`). Each word's opacity/position is
-tied directly to scroll progress through the block (`scrub`, not a
+**Titles are static; the text underneath them animates in** — the
+reverse of how this used to work. `.eyebrow`/`.section-title` render
+immediately with no entrance animation at all, already in place by the
+time their section scrolls into view. Only `.why-sub` and `.beat-caption`
+(the line of copy sitting under a title) get split into words at runtime
+(`splitWords()` in `js/main.js`). Each word's opacity/position is tied
+directly to scroll progress through the block (`scrub`, not a
 fixed-duration one-shot) — the window is `top 55%` to `top 18%`, i.e. it
 only starts once the block is already about half-scrolled into view
 (rather than the instant it peeks in at the very bottom of the screen)
@@ -200,10 +208,13 @@ site-wide). The original text is preserved via `aria-label` on the
 element, with the visual split spans marked `aria-hidden`, so screen
 readers get the plain sentence and nothing is ever hidden from crawlers —
 the un-split plain text is what's in the DOM until JS runs, and remains
-the whole story under reduced motion. `.section-title` and `.beat-caption`
-also get a gradient text-clip (applied per-word-span, since
-`background-clip: text` doesn't reliably composite through the nested
-`inline-block` word wrappers needed for the reveal).
+the whole story under reduced motion (which, for `.eyebrow`/
+`.section-title`, is now identical to the motion-enabled state, since
+neither ever animates). `.section-title` and `.beat-caption` also get a
+gradient text-clip — a single plain-element selector for `.section-title`
+(never split, so no compositing concerns) and a per-word-span selector for
+`.beat-caption` (`background-clip: text` doesn't reliably composite
+through the nested `inline-block` word wrappers a split needs).
 
 **Depth & images.** Any element with `data-speed` (the background blobs,
 `.beat-inner`, the case-study image) gets an independent scroll-scrubbed
@@ -234,13 +245,25 @@ own section (see the Work section below) rather than doubling up here.
 Services) is a continuous right-to-left auto-scroll of large white cards —
 Meta, Google Ads, WordPress, Python, Shopify, Stripe — each a simplified,
 hand-built icon in that brand's own colour (not the official brand asset,
-same approach as the WhatsApp icon elsewhere) paired with a bold text
-label. Framed as tools and platforms Optyx builds with/for, not as a
-client-logo strip — Optyx has one real case study so far (see the process
-rail above), so implying a roster of clients here would misrepresent
-that. Cards sit almost flush against each other (`gap: 0.35rem`) rather
-than spaced out as separate chips, matching the dense reference layout
-this was built from. Pure CSS, no GSAP: the track's markup is duplicated
+same approach as the WhatsApp icon elsewhere) paired with a text label.
+**Cannot fetch real logo image assets in this sandbox** — outbound
+network is blocked to essentially every asset CDN, so every mark here is
+still hand-built, not an official file. What changed this round: each
+label now sets its own typography instead of uniformly borrowing the
+site's own `--font-display` — `.marquee-item--wordpress` uses a serif
+face (WordPress's real wordmark is serif), `.marquee-item--stripe` sets
+its label lowercase (`stripe`, matching the real logo's casing), and
+everything else defaults to a neutral system sans (Arial/Helvetica)
+rather than the site's own geometric display face — the goal being each
+card reads more like that brand's actual mark and less like our own type
+applied to their name. If pixel-perfect brand accuracy matters, swap in
+official SVG/PNG logo files (see "Known placeholders"). Framed as tools
+and platforms Optyx builds with/for, not as a client-logo strip — Optyx
+has one real case study so far (see the process rail above), so implying
+a roster of clients here would misrepresent that. Cards sit almost flush
+against each other (`gap: 0.35rem`) rather than spaced out as separate
+chips, matching the dense reference layout this was built from. Pure CSS,
+no GSAP: the track's markup is duplicated
 once and a `@keyframes` loop shifts it exactly `-50%`, so the second copy
 scrolls in behind the first with no seam; `mask-image` fades both edges
 for a cinematic dissolve rather than a hard cut. The loop **never
@@ -298,6 +321,20 @@ npx http-server
 GitHub Pages supports Range requests correctly, so this only affects local
 preview, not the deployed site.
 
+**A note on automated/headless QA of the videos specifically:** the
+Playwright/Chromium build used for this project's own automated
+screenshot QA has no H.264 decoder at all (`canPlayType('video/mp4;
+codecs="avc1..."')` returns `''` — it only supports the royalty-free
+codecs, VP9/AV1/VP8). Every background video on this site is a standard
+H.264 `.mp4`, which every mainstream real browser (Chrome, Firefox,
+Safari, Edge) decodes natively — so this doesn't affect real visitors —
+but it does mean automated screenshots taken during development show a
+black box wherever a video should be, and can't be used to visually
+confirm a video actually renders. That's a QA-tooling gap, not a site
+bug; it was verified instead by confirming the file is valid (`ffprobe`)
+and correctly served (HTTP 200 + working Range support), and by direct
+visual review of extracted frames.
+
 ## Deploying to GitHub Pages
 
 1. Push to the `main` branch.
@@ -333,6 +370,9 @@ material before launch:
   site went from two punctuation-beat sections down to one, see Page
   structure above); the file is still in the repo in case it's wanted
   again, safe to delete otherwise.
+- **`assets/video/abstract-art-03.mp4`** — no longer referenced anywhere
+  (replaced as the hero background by `dot-waves.mp4`); the file is still
+  in the repo in case it's wanted again, safe to delete otherwise.
 - **`assets/video/grey-marketing-banner.mp4`** — no longer referenced
   anywhere; the file is still in the repo in case it's wanted again, safe
   to delete otherwise.
