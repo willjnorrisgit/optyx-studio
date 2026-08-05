@@ -74,13 +74,10 @@ if (navToggle && mobileNav) {
 
 // ---------------------------------------------------
 // Background videos — skip autoplay under reduced motion (freezes on
-// first frame instead of looping). Scoped to actual <video> elements —
-// .section-video is shared with the beat-dots Spline <iframe> too, which
-// has no .pause() to call (there's no reduced-motion equivalent for a
-// third-party embed's own internal animation from the parent page).
+// first frame instead of looping).
 // ---------------------------------------------------
 if (prefersReducedMotion) {
-  document.querySelectorAll('video.section-video').forEach((video) => {
+  document.querySelectorAll('.section-video').forEach((video) => {
     video.removeAttribute('autoplay');
     video.pause();
   });
@@ -225,54 +222,25 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   }
 
   // ---------------------------------------------------
-  // Beat-dots — Spline "voidspiral" scene, two phases:
-  //
-  // 1. Approach (not pinned, normal scroll): as the section scrolls up
-  //    from below the viewport to the top, the embed grows/fades from
-  //    slightly-small-and-transparent up to full-screen-and-opaque —
-  //    it's "appearing" while the page is still scrolling normally, not
-  //    yet locked.
-  // 2. Pin (the moment the section's top actually reaches the top of the
-  //    viewport, exactly where phase 1 finishes): locks in place for
-  //    ~1.5 screens. First a hold with nothing else happening — giving
-  //    the scene's own internal animation room to play out (a plain
-  //    iframe embed can't report back when that's actually finished, so
-  //    this is a generous scroll-distance estimate, not a true sync).
-  //    Only then does the caption rise up from below and settle — "the
-  //    next lot of information rising out of the final shape" — holds,
-  //    and both fade to a true black hold before releasing into why-us.
-  //
-  // The caption's CSS mix-blend-mode (.beat-dots .beat-inner) does the
-  // "blend through the shape" part on its own — screen of any colour
-  // with black is that same colour, so it only visibly picks up colour
-  // where it actually crosses something bright, no hand-timed coordinate
-  // work needed. Note: mix-blend-mode's interaction with a cross-origin
-  // iframe's actual rendered pixels isn't guaranteed the same way it was
-  // over a same-origin <video> — worth a visual check once deployed.
+  // Beat-dots — motion-trail pin-and-hold. Once the section reaches the
+  // top of the viewport it locks in place for ~1.5 screens: the video
+  // fades in, the caption rises up from below the frame and settles onto
+  // the page (its CSS mix-blend-mode does the "blend through the trails"
+  // part on its own — over the section's own black it looks identical to
+  // normal text, and only picks up colour where it actually crosses a
+  // bright trail line, so no extra timing/coordinate work is needed to
+  // sync it to the video's own motion), holds for a beat, then both fade
+  // out together to a true black hold before releasing into why-us — a
+  // deliberate cinematic beat rather than an instant cut, even though the
+  // next section is already the same black.
   // ---------------------------------------------------
   const beatDots = document.querySelector('.beat-dots');
-  const beatDotsEmbed = beatDots ? beatDots.querySelector('.section-video') : null;
+  const beatDotsVideo = beatDots ? beatDots.querySelector('.section-video') : null;
   const beatDotsInner = beatDots ? beatDots.querySelector('.beat-inner') : null;
 
-  if (beatDots && beatDotsEmbed && beatDotsInner) {
+  if (beatDots && beatDotsVideo && beatDotsInner) {
     const beatPinDistance = isSmallScreen() ? '120%' : '150%';
 
-    // Phase 1 — approach: fromTo runs immediately on load (rendering the
-    // "before scroll" state right away) and then scrubs to "fully
-    // appeared" exactly as the section's top reaches the viewport top.
-    gsap.fromTo(
-      beatDotsEmbed,
-      { opacity: 0, scale: 0.85 },
-      {
-        opacity: 1,
-        scale: 1,
-        ease: 'none',
-        scrollTrigger: { trigger: beatDots, start: 'top bottom', end: 'top top', scrub: true },
-      }
-    );
-
-    // Phase 2 — pinned: hold (spiral plays) → caption rises out of the
-    // shape and settles → holds → fades to black with the embed.
     gsap
       .timeline({
         scrollTrigger: {
@@ -284,9 +252,17 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
           anticipatePin: 1,
         },
       })
-      .fromTo(beatDotsInner, { yPercent: 70, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, ease: 'power2.out', duration: 0.22 }, 0.5)
-      .to(beatDotsInner, { autoAlpha: 0, ease: 'none', duration: 0.15 }, 0.85)
-      .to(beatDotsEmbed, { opacity: 0, ease: 'none', duration: 0.15 }, 0.85);
+      // video: fades in early, holds, fades out well before release —
+      // leaving a genuine black hold at the very end, not a hard cut
+      .fromTo(beatDotsVideo, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.14 }, 0)
+      .to(beatDotsVideo, { opacity: 0, ease: 'none', duration: 0.2 }, 0.72)
+      // caption: rises up from below the frame — a full "slide" of scroll
+      // to get there — fading in early in that rise so it's visible while
+      // still crossing the video's centre, settles, holds, then fades out
+      // together with the video for the cinematic black beat
+      .fromTo(beatDotsInner, { yPercent: 70 }, { yPercent: 0, ease: 'power2.out', duration: 0.55 }, 0)
+      .fromTo(beatDotsInner, { autoAlpha: 0 }, { autoAlpha: 1, ease: 'none', duration: 0.3 }, 0.05)
+      .to(beatDotsInner, { autoAlpha: 0, ease: 'none', duration: 0.2 }, 0.72);
   }
 
   // ---------------------------------------------------

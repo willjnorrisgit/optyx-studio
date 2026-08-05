@@ -455,11 +455,6 @@ body::after {
    Full-bleed background video (shared)
 --------------------------------------------------- */
 
-/* Shared by both <video> backgrounds and the Spline <iframe> embed below —
-   border/background only matter for the iframe (object-fit is simply
-   ignored on it, harmless); pointer-events:none keeps all of these purely
-   decorative, so a WebGL scene's own orbit-drag controls can't intercept
-   page scroll/clicks the way an interactive Spline embed normally would. */
 .section-video {
   position: absolute;
   inset: 0;
@@ -467,9 +462,6 @@ body::after {
   height: 100%;
   object-fit: cover;
   z-index: 0;
-  border: 0;
-  background: var(--bg-black);
-  pointer-events: none;
 }
 
 /* ---------------------------------------------------
