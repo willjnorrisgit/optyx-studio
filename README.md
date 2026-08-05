@@ -23,25 +23,30 @@ assets/video/grey-marketing-banner.mp4    Unused — kept in assets/, no longer 
 
 `motion-trail` already looped cleanly as delivered (verified by diffing
 its own first/last frame — well under the threshold that reads as a
-visible jump) and was left alone. `blue-flow` and the current
-`dot-waves` (a supplied clip, not the original `dot-waves` this project
-had years ago under the same filename — this is a distinct, newer file)
-didn't loop cleanly — both are re-encoded from their source with a
-crossfade blended across the loop point (0.4s for `blue-flow`, via an
-`xfade` filter blending the true tail into the true head): what plays is
-a shorter loop with no seam rather than the original full-length clip
-with a visible jump at the wrap-around. `dot-waves` went through this
-twice — the first pass used a 0.5s crossfade at `crf 20`, which visibly
-stuttered; the current version uses a much shorter 0.15s crossfade at
-`crf 23`/`preset slow` (bitrate now close to the source's own, rather
-than higher), on the theory that a long dissolve between two different
-particle configurations reads as flicker/stutter for a fast, chaotic
-field like this, where a quick cut doesn't. **Unverified** — this
-project's headless QA browser can't decode H.264 at all (see "Local
-development"), so this was reasoned from the file's own encoding
-characteristics, not confirmed by watching it play. If it still stutters,
-that's useful signal the cause is something else (e.g. decode load on a
-specific device, not the loop point).
+visible jump) and was left alone. `blue-flow` didn't loop cleanly as
+delivered — it's re-encoded from its source with a 0.4s crossfade
+blended across the loop point (`xfade` filter, true tail dissolving into
+true head): what plays is a shorter loop with no seam rather than the
+original full-length clip with a visible jump at the wrap-around.
+
+`dot-waves` has been through three passes. The first two used that same
+crossfade-dissolve technique (0.5s, then a shorter/leaner 0.15s re-encode
+after a reported stutter) — both still blended two *different* particle
+configurations together, which for a fast, chaotic field is arguably the
+wrong technique regardless of duration (a dissolve between non-matching
+content reads as flicker no matter how brief). The current version is a
+genuine **blur transition** instead: the last 0.4s crosses from the
+sharp source footage into a heavily Gaussian-blurred (`gblur`, sigma 22)
+copy of the *same* frames (`xfade` again, but blurring toward itself
+rather than dissolving into different content), so the tail gets
+progressively softer and then cuts straight to the sharp opening frame
+once it loops — the blur hides the cut the way a whip-pan or motion-blur
+transition hides an edit, rather than trying to disguise it with a
+cross-fade. **Still unverified by actually watching it** — this
+project's headless QA browser has no H.264 decoder at all (see "Local
+development"), so every pass here has been reasoned from the file's
+encoding/frame data (verified via `ffprobe` and direct frame extraction)
+rather than confirmed by eye.
 
 ## Page structure & motion system
 
@@ -52,12 +57,12 @@ switching the page's own background colour. Cards split into two
 palettes: the case-study frame stays stark white (`--bg-panel`), while
 testimonials, the contact panel and form fields use a softer, textured
 dark-blue variant (`--bg-panel-tint`) — see Colour system below for why.
-The tools band is its own third thing again — a uniform accent-tinted
-treatment, see Tools & platforms below.
+The tools band is its own third thing again — a uniform dark-card
+treatment on an auto-scrolling carousel, see Tools & platforms below.
 
 ```
 Hero (black, video, pinned — pill nav + stacked headline + tagline + corner badge + 5-star note)
-  → Tools band "Built with tools you already trust" (black, static full-width row)
+  → Tools band "Built with tools you already trust" (black, right-to-left auto-scroll carousel)
     → Services "What we do" (black, holds — tag pill per row)
       → Process rail "How it works" (black, pinned — vertical scroll drives horizontal cards)
         → Beat: blue-flow (black, video, holds — quiet, not pinned)
@@ -259,11 +264,26 @@ a section reads as one cinematic beat — static title already in place,
 then everything beneath it arriving together from below — rather than
 a light, incidental fade.
 
+**Titles also drift continuously**, on top of arriving with no entrance
+animation (see above) — every `.section-title` gets a slow horizontal
+pan (`x: -28` to `x: 28`, scaled by the same mobile `intensity` factor as
+the parallax below) tied directly to scroll position across the whole
+time the title is in view, `scrub` with no `once`. The two ideas aren't
+in tension: a title still shows up already in place with zero
+entrance animation, it just isn't inert once it's there — it keeps
+tracking the scroll for as long as its section is on screen, which is
+where "moving titles" now comes from on this site instead of an
+entrance effect.
+
 **Depth & images.** Any element with `data-speed` (the background blobs,
 `.beat-inner`, the case-study image) gets an independent scroll-scrubbed
 parallax offset, scaled down for mobile via `gsap.matchMedia()`. The
 case-study image also gets a `clip-path` mask reveal on scroll-in plus a
-continuous subtle scale/drift while it's in view.
+continuous subtle scale/drift while it's in view. `.beat-banner`'s video
+gets the same idea — a slow continuous zoom (`scale: 1` → `1.1` across
+the section's full scroll transit) rather than sitting static behind the
+caption, so it reads as a deliberate camera move instead of a looping
+backdrop.
 
 **Services.** The "What we do" list (`.services-list` in `index.html`) is
 a numbered list — large ghost numerals (01/02/03), thin dividers, a
@@ -285,28 +305,24 @@ just the process, with LockOn's own case study living further down in its
 own section (see the Work section below) rather than doubling up here.
 
 **Tools & platforms band.** `.tools-band` (between Hero and Services) is
-now a **static, full-width row** — Meta, Google Ads, WordPress, Python,
-Shopify, Stripe, each `.tools-item` a `flex: 1 1 150px` cell so the six
-items stretch to fill the viewport edge to edge and wrap onto a second
-row on narrow screens, rather than the auto-scrolling loop this used to
-be (no `@keyframes`, no `.marquee-section`/`.marquee-track`/
-`.marquee-viewport` scaffolding — that's all gone, renamed to
-`.tools-band`/`.tools-row`/`.tools-item` to stop implying a marquee that
-no longer exists). Every icon and label now shares **one uniform colour**
-(`var(--accent-dim)` fill, `var(--accent-bright)` icon/text, a hairline
-accent border) instead of each brand's own colours — icons are drawn
-with `stroke="currentColor"` rather than brand-hex fills, so recolouring
-the whole row is one CSS variable away. Each item still gets its own
-hover lift + icon scale/rotate, same as before. **Cannot fetch real logo
-image assets in this sandbox** — outbound network is blocked to
-essentially every asset CDN, so every mark is still hand-built (not an
-official file), just simpler line-icon versions now that colour is
-uniform rather than brand-accurate. If pixel-perfect brand accuracy
-matters, swap in official SVG/PNG logo files (see "Known placeholders").
-Framed as tools and platforms Optyx builds with/for, not as a
-client-logo strip — Optyx has one real case study so far (see the
-process rail above), so implying a roster of clients here would
-misrepresent that.
+a **right-to-left auto-scroll carousel again** — Meta, Google Ads,
+WordPress, Python, Shopify, Stripe, track markup duplicated in
+`index.html` with a `@keyframes` loop shifting exactly `-50%` so the
+second copy scrolls in behind the first with no seam (`.tools-viewport`
+clips it, `mask-image` fades both edges) — the brief static full-width
+row from the previous round is gone. Every icon/label still shares
+**one uniform colour treatment**, but it's now a dark grey/black card
+(`#14161b` fill, `--text` icon/label, hairline white-alpha border,
+brightening to `--accent` on hover) instead of the accent-blue tint used
+before — icons stay `stroke="currentColor"` so recolouring the whole row
+is still one property away. **Cannot fetch real logo image assets in
+this sandbox** — outbound network is blocked to essentially every asset
+CDN, so every mark is still hand-built (not an official file). If
+pixel-perfect brand accuracy matters, swap in official SVG/PNG logo files
+(see "Known placeholders"). Framed as tools and platforms Optyx builds
+with/for, not as a client-logo strip — Optyx has one real case study so
+far (see the process rail above), so implying a roster of clients here
+would misrepresent that.
 
 **Cards & buttons.** `.btn-primary` uses its own gradient
 (`--btn-blue`/`--btn-blue-hover`) pulled in close to the vivid teal

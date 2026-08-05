@@ -718,16 +718,17 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 }
 
 /* ---------------------------------------------------
-   Tools & platforms — static full-width band (no auto-scroll). Every
-   item shares one uniform colour treatment (accent-tinted fill, single
-   icon/text colour) rather than each brand's own colours, so the row
-   reads as one consistent strip rather than six different palettes.
+   Tools & platforms — right-to-left auto-scroll carousel again (track
+   markup is duplicated in index.html, loop shifts exactly -50%). Every
+   item shares one uniform dark grey/black colour treatment rather than
+   each brand's own colours, so the row reads as one consistent strip.
 --------------------------------------------------- */
 
 .tools-band {
   position: relative;
   padding-block: clamp(3rem, 6vw, 5rem);
   background: var(--bg-black);
+  overflow: hidden;
 }
 
 .tools-label {
@@ -741,38 +742,52 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   margin: 0 0 clamp(2rem, 4vw, 3rem);
 }
 
+.tools-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
 .tools-row {
   display: flex;
-  flex-wrap: wrap;
-  width: 100%;
+  align-items: stretch;
   gap: 0.6rem;
+  width: max-content;
   list-style: none;
   margin: 0;
-  padding: 0 var(--gutter);
+  padding: 0;
+  animation: tools-scroll 34s linear infinite;
+}
+
+@keyframes tools-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 .tools-item {
-  flex: 1 1 150px;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.85rem;
-  padding: clamp(1.5rem, 2.6vw, 2.1rem) clamp(1rem, 2vw, 1.5rem);
+  padding: clamp(1.5rem, 2.6vw, 2.1rem) clamp(1.75rem, 3vw, 2.5rem);
   border-radius: 14px;
-  background: var(--accent-dim);
-  border: 1px solid rgba(41, 180, 230, 0.22);
-  color: var(--accent-bright);
+  background: #14161b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(1rem, 1.5vw, 1.25rem);
   white-space: nowrap;
   transition: transform 0.35s var(--ease-premium), box-shadow 0.35s var(--ease-premium),
-    background 0.35s var(--ease-premium);
+    border-color 0.35s var(--ease-premium);
 }
 .tools-item:hover {
   transform: translateY(-6px);
-  background: rgba(41, 180, 230, 0.16);
-  box-shadow: 0 20px 40px -16px rgba(41, 180, 230, 0.35);
+  border-color: var(--accent);
+  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.5);
 }
 
 .tools-item svg {
@@ -800,6 +815,12 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 .tools-item:hover svg,
 .tools-item:hover .tools-badge {
   transform: scale(1.12) rotate(-4deg);
+  color: var(--accent-bright);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tools-row { animation: none; }
+  .tools-viewport { overflow-x: auto; }
 }
 
 /* ---------------------------------------------------

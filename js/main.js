@@ -278,6 +278,20 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
       })
       .fromTo(beatBannerVideo, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.15 }, 0)
       .to(beatBannerVideo, { opacity: 0, ease: 'none', duration: 0.3 }, 0.7);
+
+    // Slow continuous zoom across the whole section transit — the same
+    // idea as the case-study image's Ken Burns drift, so the video reads
+    // as a deliberate, camera-like move rather than a static loop sitting
+    // behind the caption.
+    gsap.fromTo(
+      beatBannerVideo,
+      { scale: 1 },
+      {
+        scale: 1.1,
+        ease: 'none',
+        scrollTrigger: { trigger: beatBanner, start: 'top bottom', end: 'bottom top', scrub: true },
+      }
+    );
   }
 
   // ---------------------------------------------------
@@ -448,6 +462,26 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
           { y: () => -window.innerHeight * speed },
           {
             y: () => window.innerHeight * speed,
+            ease: 'none',
+            scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true },
+          }
+        );
+      });
+
+      // Section titles get a continuous horizontal drift tied directly
+      // to scroll position (scrub, no "once" — it keeps tracking for as
+      // long as the section is in view, unlike every other reveal on the
+      // page). Deliberately separate from the title-is-static rule
+      // above: titles still get no entrance animation and are already in
+      // place the instant a section appears, but once they're there they
+      // drift gently with the scroll itself rather than sitting inert.
+      gsap.utils.toArray('.section-title').forEach((el) => {
+        const drift = 28 * intensity;
+        gsap.fromTo(
+          el,
+          { x: -drift },
+          {
+            x: drift,
             ease: 'none',
             scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true },
           }

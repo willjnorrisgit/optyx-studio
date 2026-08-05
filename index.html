@@ -102,35 +102,64 @@
       </div>
     </section>
 
-    <!-- TOOLS & PLATFORMS — static full-width band -->
+    <!-- TOOLS & PLATFORMS — dark carousel -->
     <section class="tools-band" data-theme="dark" aria-label="Platforms and tools we build with">
       <p class="tools-label reveal">Built with tools you already trust</p>
-      <ul class="tools-row">
-        <li class="tools-item">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12c0-2.2 1.3-4 3-4 2.3 0 3.3 2.6 4.5 4s2.2 4 4.5 4c1.7 0 3-1.8 3-4s-1.3-4-3-4c-2.3 0-3.3 2.6-4.5 4s-2.2 4-4.5 4c-1.7 0-3-1.8-3-4Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
-          <span>Meta</span>
-        </li>
-        <li class="tools-item">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="15" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-          <span>Google Ads</span>
-        </li>
-        <li class="tools-item">
-          <span class="tools-badge">W</span>
-          <span>WordPress</span>
-        </li>
-        <li class="tools-item">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span>Python</span>
-        </li>
-        <li class="tools-item">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10l1 11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L7 8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <span>Shopify</span>
-        </li>
-        <li class="tools-item">
-          <span class="tools-badge">S</span>
-          <span>stripe</span>
-        </li>
-      </ul>
+      <div class="tools-viewport">
+        <ul class="tools-row" aria-hidden="true">
+          <li class="tools-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12c0-2.2 1.3-4 3-4 2.3 0 3.3 2.6 4.5 4s2.2 4 4.5 4c1.7 0 3-1.8 3-4s-1.3-4-3-4c-2.3 0-3.3 2.6-4.5 4s-2.2 4-4.5 4c-1.7 0-3-1.8-3-4Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+            <span>Meta</span>
+          </li>
+          <li class="tools-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="15" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            <span>Google Ads</span>
+          </li>
+          <li class="tools-item">
+            <span class="tools-badge">W</span>
+            <span>WordPress</span>
+          </li>
+          <li class="tools-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Python</span>
+          </li>
+          <li class="tools-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10l1 11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L7 8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span>Shopify</span>
+          </li>
+          <li class="tools-item">
+            <span class="tools-badge">S</span>
+            <span>stripe</span>
+          </li>
+          <!-- Duplicate set — the CSS loop shifts the track exactly -50%,
+               so this copy is what scrolls into view seamlessly behind
+               the first, with no gap or jump at the seam. -->
+          <li class="tools-item" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12c0-2.2 1.3-4 3-4 2.3 0 3.3 2.6 4.5 4s2.2 4 4.5 4c1.7 0 3-1.8 3-4s-1.3-4-3-4c-2.3 0-3.3 2.6-4.5 4s-2.2 4-4.5 4c-1.7 0-3-1.8-3-4Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+            <span>Meta</span>
+          </li>
+          <li class="tools-item" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="15" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            <span>Google Ads</span>
+          </li>
+          <li class="tools-item" aria-hidden="true">
+            <span class="tools-badge">W</span>
+            <span>WordPress</span>
+          </li>
+          <li class="tools-item" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Python</span>
+          </li>
+          <li class="tools-item" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10l1 11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L7 8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span>Shopify</span>
+          </li>
+          <li class="tools-item" aria-hidden="true">
+            <span class="tools-badge">S</span>
+            <span>stripe</span>
+          </li>
+        </ul>
+      </div>
     </section>
 
     <!-- WHAT WE DO -->
