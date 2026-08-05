@@ -184,7 +184,7 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   const heroVideo = hero ? hero.querySelector('.hero-video') : null;
   let heroTl = null;
 
-  if (hero && heroLogo) {
+  if (hero) {
     const pinDistance = isSmallScreen() ? '60%' : '100%';
     const videoTravel = isSmallScreen() ? window.innerHeight * 0.16 : window.innerHeight * 0.24;
     const badgeDrop = isSmallScreen() ? window.innerHeight * 0.32 : window.innerHeight * 0.42;
@@ -207,12 +207,18 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
       // hard right at the pin boundary
       heroTl.to(heroVideo, { opacity: 0, ease: 'none', duration: 0.3 }, 0.7);
     }
-    // badge: drops steadily for the entire pinned range (opposite direction
-    // to the video, so the separation is visible throughout), only fading
-    // out in the final 40% once it's dropped well clear of the wordmark's
-    // resting position
-    heroTl.to(heroLogo, { y: badgeDrop, ease: 'none', duration: 1 }, 0);
-    heroTl.to(heroLogo, { autoAlpha: 0, ease: 'none', duration: 0.4 }, 0.6);
+    // badge: no identity mark in the hero right now (removed, pending a
+    // replacement design) — .hero-logo doesn't currently exist in the DOM,
+    // so this is a no-op until it's back; the pin/video motion above
+    // doesn't depend on it either way.
+    if (heroLogo) {
+      // drops steadily for the entire pinned range (opposite direction to
+      // the video, so the separation is visible throughout), only fading
+      // out in the final 40% once it's dropped well clear of the
+      // wordmark's resting position
+      heroTl.to(heroLogo, { y: badgeDrop, ease: 'none', duration: 1 }, 0);
+      heroTl.to(heroLogo, { autoAlpha: 0, ease: 'none', duration: 0.4 }, 0.6);
+    }
   }
 
   // ---------------------------------------------------

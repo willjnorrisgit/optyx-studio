@@ -8,8 +8,10 @@
      page-level (light-on-black) tokens; content living inside a white
      --bg-panel card (testimonials, contact panel, form fields, the case
      study frame) uses the --*-panel tokens instead, since white-on-white
-     would otherwise disappear. */
-  --bg-black: #0a0a0c;
+     would otherwise disappear. Pure #000, not an off-black — the section
+     videos render at (0,0,0) themselves, and a lighter --bg-black used to
+     read as a visible seam against them whenever a video faded out. */
+  --bg-black: #000000;
   --bg-panel: #ffffff;
   --border: rgba(255, 255, 255, 0.12);
   --border-strong: rgba(255, 255, 255, 0.2);
@@ -32,6 +34,12 @@
   --accent: #29b4e6;
   --accent-bright: #5cd6f7;
   --accent-dim: rgba(41, 180, 230, 0.18);
+
+  /* Darker metallic-blue gradient, scoped to primary buttons only
+     (everything above stays the vivid teal-blue) — a deep steel/navy
+     blue rather than the flat, pale accent fill buttons had before. */
+  --btn-blue: linear-gradient(135deg, #2f6386 0%, #17324a 60%, #0f2432 100%);
+  --btn-blue-hover: linear-gradient(135deg, #3d7699 0%, #1f405a 60%, #142c3d 100%);
 
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Big Shoulders Stencil Display', var(--font);
@@ -235,12 +243,13 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 .btn-primary {
-  background: var(--accent);
+  background: var(--btn-blue);
   color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  background: var(--accent-bright);
+  background: var(--btn-blue-hover);
 }
 
 .btn-ghost {
@@ -362,12 +371,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
   color: inherit;
-}
-.logo-badge {
-  width: 30px;
-  height: 30px;
 }
 .logo-word {
   font-family: var(--font);
@@ -468,10 +472,19 @@ body::after {
   background: var(--bg-black);
 }
 
+/* Scaled down from full-bleed so the design reads as a contained object
+   with real black margin around it (closer to the reference layout)
+   rather than edge-to-edge — the existing top/height bleed already
+   over-covers the viewport generously, so shrinking it still leaves no
+   exposed edges through the pin's own vertical travel. GSAP only tweens
+   `y` on this element (see heroTl in js/main.js); it reads this scale as
+   the element's baseline transform and composes the two rather than
+   overwriting it. */
 .hero-video {
   object-position: 62% 50%;
   top: -25%;
   height: 150%;
+  transform: scale(0.72);
 }
 
 /* Three stacked scrims: the original top one clears the nav area; the
@@ -496,21 +509,6 @@ body::after {
   height: 100%;
 }
 
-/* Badge mark — the identity mark that drops/fades during the hero pin
-   (see heroTl in js/main.js, unchanged: it animates whatever .hero-logo
-   contains). Top-right, clear of the headline block on the left. */
-.hero-logo {
-  position: absolute;
-  top: 12%;
-  right: var(--gutter);
-}
-
-.hero-logo-mark {
-  display: block;
-  width: clamp(84px, 8vw, 130px);
-  height: clamp(84px, 8vw, 130px);
-}
-
 .hero-copy {
   position: absolute;
   left: var(--gutter);
@@ -523,10 +521,11 @@ body::after {
 }
 
 .hero-headline {
-  font-size: clamp(2rem, 4.6vw, 3.5rem);
+  font-size: clamp(1.85rem, 4.2vw, 3.15rem);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
+  letter-spacing: 0.01em;
+  line-height: 1.24;
+  text-transform: uppercase;
   margin: 0 0 1.1rem;
 }
 
@@ -1047,9 +1046,6 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   .nav-toggle { display: flex; }
 
   .header-inner { height: 76px; }
-
-  .hero-logo { top: 10%; }
-  .hero-logo-mark { width: 64px; height: 64px; }
 
   .hero-copy { bottom: 20%; max-width: calc(100% - 2 * var(--gutter)); }
   .hero-subhead { max-width: 100%; }

@@ -12,8 +12,8 @@ Plain HTML/CSS/JS, no build step, deploy-ready for GitHub Pages.
 index.html                                Page markup
 css/styles.css                            All styling
 js/main.js                                Intro, GSAP/ScrollTrigger/Lenis motion system, nav, contact form
-assets/favicon.svg                        Browser tab icon (badge on a dark rounded-square fill)
-assets/optyx-badge.svg                    The identity mark — matte-grey ring + blue "lens" accent
+assets/favicon.svg                        Browser tab icon (plain ring mark, no badge — see below)
+assets/optyx-badge.svg                    Unused for now (see "Known placeholders") — not referenced anywhere
 assets/video/abstract-art-03.mp4          Hero background loop
 assets/video/motion-trail.mp4             Beat-dots (particles) background loop
 assets/video/blue-flow.mp4                Beat-banner background loop
@@ -38,7 +38,7 @@ the case-study frame, form fields) and a vivid teal-blue accent, not from
 switching the page's own background colour:
 
 ```
-Hero (black, video, pinned — pill nav + badge + headline/stats)
+Hero (black, video, pinned — pill nav + headline/stats)
   → Services "What we do" (black, holds)
     → Beat: motion-trail particles (black, video, pinned + content rises over it)
       → Why us (black, holds, white testimonial/badge cards)
@@ -65,40 +65,41 @@ would otherwise disappear. `body { color-scheme: dark }` keeps native UI
 `color-scheme: light` scoped back onto the two actual `<input>`/
 `<textarea>` fields so their own chrome doesn't get auto-dark-moded away
 from the explicit white fill. The accent (`--accent`/`--accent-bright`) is
-a vivid teal-blue, used for eyebrows, gradient headings, links, bullet
-dots, the ring logo's lens highlight, and button fills.
-
-**The badge (`assets/optyx-badge.svg`).** A matte-grey metal ring with a
-smaller blue "lens" ring set into its upper-right edge, both rendered as
-linear gradients for a brushed-metal look. It's a single source file,
-reused everywhere via a plain `<img src="assets/optyx-badge.svg">` (it
-scales cleanly at any size since it's just a 200×200 viewBox, so the same
-file works from favicon-size up to the large hero placement with no
-separate assets or inline duplication) — `assets/favicon.svg` is the one
-exception, a *separate* file that reuses the same ring/gradient markup
-over an added dark rounded-square fill, since a browser tab needs an
-opaque background rather than the badge's own transparent one.
+a vivid teal-blue, used for eyebrows, gradient headings, links, and bullet
+dots — buttons are their own separate darker-blue system, see Cards &
+buttons below. `--bg-black` is pure `#000`, not an off-black: the section
+videos render at `(0,0,0)` themselves, and a lighter `--bg-black` used to
+read as a faint seam against them wherever a video faded in/out, breaking
+the "one consistent black" the site is going for between sections.
 
 **Header & hero.** The header (`.site-header`) is a floating rounded pill
 (blurred semi-transparent fill, inset from the top) rather than a flush
 full-width bar, and hides on scroll-down / reappears on scroll-up via a
-master `ScrollTrigger`. Its logo (`#homeLogo`) is the badge next to a
-plain "OPTYX" wordmark — a normal in-page link to `#top` for
-no-JS/reduced-motion visitors; with JS it also clears the intro's session
-flag and does a full navigation back to the page root, so clicking it
-replays the intro from scratch exactly as a first visit would. The footer
-logo is the same badge+wordmark lockup. The hero itself is **pinned**
-(`pin: true`) for one extra viewport height of scroll: the video retreats
-upward for the whole pinned range while the badge — large, top-right,
-clear of the headline block on the left — drops steadily downward across
-that same range, fading out only in the pin's final 40% once it's dropped
-well clear, right as the next section takes over. The rest of the hero
-(headline, subhead, CTA, the two stat blocks) sits outside the pin
-timeline entirely and stays static throughout — only the badge and video
-move. Three stacked gradients in `.hero-overlay` darken the lower-left
-quadrant specifically (where the headline/subhead/CTA sit) regardless of
-what the looping video is doing behind them at any given moment, rather
-than fighting the video's own crop to try to keep that zone empty.
+master `ScrollTrigger`. Its logo (`#homeLogo`) is a plain "OPTYX"
+wordmark, no icon (see "Known placeholders") — a normal in-page link to
+`#top` for no-JS/reduced-motion visitors; with JS it also clears the
+intro's session flag and does a full navigation back to the page root, so
+clicking it replays the intro from scratch exactly as a first visit
+would. The footer logo is the same plain wordmark. The hero itself is
+**pinned** (`pin: true`) for one extra viewport height of scroll: the
+video retreats upward for the whole pinned range (there's currently no
+badge to animate alongside it — `heroTl`'s badge tweens are gated behind
+`if (heroLogo)` and simply skip themselves while `.hero-logo` doesn't
+exist in the DOM, so the video's own motion isn't affected either way).
+The headline/subhead/CTA/stat blocks sit outside the pin timeline
+entirely and stay static throughout. The video itself is scaled down
+(`transform: scale(0.72)` on `.hero-video`) so it reads as a contained
+object with real black margin around it rather than edge-to-edge — GSAP
+only tweens its `y`, and composes that on top of the CSS scale rather
+than overwriting it, so the pin's own parallax still works unchanged.
+Three stacked gradients in `.hero-overlay` additionally darken the
+lower-left quadrant specifically (where the headline/subhead/CTA sit)
+regardless of what the looping video is doing behind them at any given
+moment, rather than relying on the video's own crop to keep that zone
+clear. The headline itself is uppercase with a small amount of positive
+tracking (`.hero-headline`) to match the reference layout's bold
+geometric look, rather than the tighter negative-tracked sentence case it
+had before.
 
 **Beat-dots — motion-trail pin-and-hold.** Same pinning technique as the
 hero: once `.beat-dots` reaches the top of the viewport it locks in place
@@ -125,10 +126,10 @@ treatment.
 scroll-through hold with `blue-flow.mp4` behind the caption, fading in/out
 at its own section edges (`start: 'top bottom', end: 'bottom top'`) so it
 doesn't pop in as a hard-edged box. The clip's own black background is
-pure `#000`, close enough to the site's `--bg-black` (`#0a0a0c`, a
-12-unit-per-channel difference) to read as the same black rather than a
-visibly different panel — checked directly by sampling the clip's own
-corner pixels against the CSS value rather than assumed.
+pure `#000` — the same value `--bg-black` uses now (see Colour system
+above), so it reads as the exact same black as every other section
+rather than a visibly different panel, checked directly by sampling the
+clip's own corner pixels rather than assumed.
 
 **Typography.** Headings/eyebrows/captions are split into words at
 runtime (`splitWords()` in `js/main.js`). Each word's opacity/position is
@@ -161,11 +162,12 @@ a numbered list — large ghost numerals (01/02/03), thin dividers, a
 staggered reveal via `ScrollTrigger.batch` — rather than an icon card
 grid.
 
-**Cards & buttons.** `.btn-primary` rests at the darker `--accent` and
-brightens to `--accent-bright` on hover (inverted from the original
-resting-bright/hover-dark pairing) — a deliberately darker resting shade
-per feedback that the lighter one read as too pale. On `(hover: hover) and
-(pointer: fine)` devices only:
+**Cards & buttons.** `.btn-primary` uses its own darker metallic-blue
+gradient (`--btn-blue`/`--btn-blue-hover`, a deep steel/navy blend rather
+than a flat fill) with a thin inset highlight/shadow pair for a brushed-
+metal edge, separate from the vivid teal `--accent` used everywhere else
+— feedback was that the flat teal fill read as too pale/"baby blue" for a
+primary CTA. On `(hover: hover) and (pointer: fine)` devices only:
 testimonials and the direct-contact panel get a cursor-follow 3D tilt +
 lift via `gsap.quickTo`; every `.btn` gets a magnetic hover (pulls toward
 the cursor within a proximity radius, `power3.out` while tracking,
@@ -204,6 +206,15 @@ preview, not the deployed site.
 The following are placeholder content and should be replaced with real
 material before launch:
 
+- **Identity mark / badge** — the site currently has no icon anywhere
+  (favicon is a plain ring, header/footer/hero are text/video-only). A
+  previous badge design (`assets/optyx-badge.svg`, a metal ring + blue
+  "lens" accent) didn't land well and was pulled from every placement
+  pending a redesign; the file is still in `assets/` but not referenced
+  from anywhere. `.hero-logo`'s pin-timeline animation in `js/main.js` is
+  still there and gated behind `if (heroLogo)`, so dropping a new
+  `.hero-logo` element back into the hero markup picks the drop/fade
+  motion back up automatically with no JS changes needed.
 - **Hero stats** — the two `[X]+` stat blocks (`.hero-stat-num` in
   `index.html`) are bracketed placeholders — Optyx Studio has no verified
   track record yet, so these are deliberately not real numbers. Fill in
