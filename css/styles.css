@@ -41,8 +41,13 @@
   --btn-blue: linear-gradient(135deg, #2f6386 0%, #17324a 60%, #0f2432 100%);
   --btn-blue-hover: linear-gradient(135deg, #3d7699 0%, #1f405a 60%, #142c3d 100%);
 
+  /* Space Grotesk (headings, nav, buttons, labels — geometric grotesk) +
+     Inter (body copy, stays the more legible of the two at the lighter
+     weights long-form text needs). --font-display tops out at weight 700
+     (Space Grotesk has no 800/900) — anywhere that used to ask for a
+     heavier weight is capped at 700 now, not synthetically bolded. */
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Big Shoulders Stencil Display', var(--font);
+  --font-display: 'Space Grotesk', var(--font);
 
   --wrap: 1180px;
   --gutter: clamp(1.25rem, 4vw, 3rem);
@@ -166,7 +171,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 
 .intro-primary {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 700;
   font-size: clamp(2.75rem, 9vw, 6rem);
   letter-spacing: 0.01em;
   text-transform: uppercase;
@@ -176,7 +181,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 .intro-sub {
   position: relative;
   margin-top: 0.75rem;
-  font-family: var(--font);
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: clamp(0.75rem, 1.6vw, 0.95rem);
   letter-spacing: 0.34em;
@@ -233,6 +238,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   gap: 0.5rem;
   padding: 0.9rem 1.75rem;
   border-radius: 999px;
+  font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 600;
   border: 1px solid transparent;
@@ -300,7 +306,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 .site-nav a {
-  font-family: var(--font);
+  font-family: var(--font-display);
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.3em;
@@ -359,7 +365,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   gap: 1.1rem;
 }
 .mobile-nav a {
-  font-family: var(--font);
+  font-family: var(--font-display);
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.2em;
@@ -374,7 +380,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   color: inherit;
 }
 .logo-word {
-  font-family: var(--font);
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.15rem;
   letter-spacing: 0.16em;
@@ -449,6 +455,11 @@ body::after {
    Full-bleed background video (shared)
 --------------------------------------------------- */
 
+/* Shared by both <video> backgrounds and the Spline <iframe> embed below —
+   border/background only matter for the iframe (object-fit is simply
+   ignored on it, harmless); pointer-events:none keeps all of these purely
+   decorative, so a WebGL scene's own orbit-drag controls can't intercept
+   page scroll/clicks the way an interactive Spline embed normally would. */
 .section-video {
   position: absolute;
   inset: 0;
@@ -456,6 +467,9 @@ body::after {
   height: 100%;
   object-fit: cover;
   z-index: 0;
+  border: 0;
+  background: var(--bg-black);
+  pointer-events: none;
 }
 
 /* ---------------------------------------------------
@@ -521,6 +535,7 @@ body::after {
 }
 
 .hero-headline {
+  font-family: var(--font-display);
   font-size: clamp(1.85rem, 4.2vw, 3.15rem);
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -557,6 +572,7 @@ body::after {
 }
 
 .hero-stat-num {
+  font-family: var(--font-display);
   font-size: clamp(1.75rem, 3vw, 2.5rem);
   font-weight: 700;
   color: #fff;
@@ -570,6 +586,7 @@ body::after {
 }
 
 .eyebrow {
+  font-family: var(--font-display);
   font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -585,6 +602,7 @@ body::after {
 section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 
 .section-title {
+  font-family: var(--font-display);
   font-size: clamp(1.9rem, 3.6vw, 3rem);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -644,7 +662,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 
 .service-num {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 700;
   font-size: clamp(2rem, 4.5vw, 3.25rem);
   color: var(--accent);
   opacity: 0.32;
@@ -654,6 +672,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 .service-row:hover .service-num { opacity: 0.75; }
 
 .service-row-body h3 {
+  font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 700;
   margin: 0 0 0.6rem;
@@ -706,6 +725,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 }
 
 .beat-caption {
+  font-family: var(--font-display);
   font-size: clamp(1.15rem, 2.4vw, 1.7rem);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -1039,6 +1059,23 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   .case-media { order: -1; }
   .testimonials { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
+
+  /* The desktop cover+bleed+scale combo is tuned for a wide, landscape
+     viewport — on anything narrower it was cropping most of the design
+     out of frame instead of just adding margin. `contain` guarantees the
+     whole video stays visible instead, letterboxed on a background
+     that's already the same jet black, so it reads as intentional
+     framing rather than a crop. Keeps a modest bleed (not the desktop
+     150%) purely so the pin's own y-parallax has room to move within
+     without the letterboxed video clipping against .hero's own
+     overflow:hidden edge. */
+  .hero-video {
+    object-fit: contain;
+    object-position: center;
+    top: -8%;
+    height: 116%;
+    transform: none;
+  }
 }
 
 @media (max-width: 760px) {

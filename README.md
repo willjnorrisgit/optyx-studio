@@ -15,19 +15,23 @@ js/main.js                                Intro, GSAP/ScrollTrigger/Lenis motion
 assets/favicon.svg                        Browser tab icon (plain ring mark, no badge — see below)
 assets/optyx-badge.svg                    Unused for now (see "Known placeholders") — not referenced anywhere
 assets/video/abstract-art-03.mp4          Hero background loop
-assets/video/motion-trail.mp4             Beat-dots (particles) background loop
 assets/video/blue-flow.mp4                Beat-banner background loop
 assets/video/grey-marketing-banner.mp4    Unused — kept in assets/, no longer referenced (see below)
 ```
 
-`abstract-art-03` and `motion-trail` already looped cleanly as delivered
-(verified by diffing their own first/last frame — well under the
-threshold that reads as a visible jump) and were left alone. `blue-flow`
-didn't — it's re-encoded from the source with a 0.4s crossfade blended
-across the loop point (same technique used on the old `dot-waves` clip
-this replaced): the true last 0.4s dissolves into the true first 0.4s,
-so what plays is a shorter loop with no seam rather than the original
-full-length clip with one.
+Beat-dots (the "Every pixel earns its place." section) has no local video
+of its own any more — it's a live Spline scene embedded from
+`my.spline.design`, see "Beat-dots" below for how that's wired up and
+what that trade-off actually means.
+
+`abstract-art-03` already looped cleanly as delivered (verified by
+diffing its own first/last frame — well under the threshold that reads
+as a visible jump) and was left alone. `blue-flow` didn't — it's
+re-encoded from the source with a 0.4s crossfade blended across the loop
+point (same technique used on the old `dot-waves` clip this originally
+replaced): the true last 0.4s dissolves into the true first 0.4s, so what
+plays is a shorter loop with no seam rather than the original full-length
+clip with one.
 
 ## Page structure & motion system
 
@@ -40,7 +44,7 @@ switching the page's own background colour:
 ```
 Hero (black, video, pinned — pill nav + headline/stats)
   → Services "What we do" (black, holds)
-    → Beat: motion-trail particles (black, video, pinned + content rises over it)
+    → Beat: Spline "voidspiral" scene (black, pinned + content rises out of it)
       → Why us (black, holds, white testimonial/badge cards)
         → Beat: blue-flow (black, video, holds — quiet, not pinned)
           → Case study + Contact (black, runs to the footer, white cards)
@@ -101,26 +105,81 @@ tracking (`.hero-headline`) to match the reference layout's bold
 geometric look, rather than the tighter negative-tracked sentence case it
 had before.
 
-**Beat-dots — motion-trail pin-and-hold.** Same pinning technique as the
-hero: once `.beat-dots` reaches the top of the viewport it locks in place
-for ~1.5 screens (`end: '+=150%'`). The video fades in, the caption rises
-up from below the frame and settles onto the page, holds for a beat, then
-both fade out together to a genuine black hold before releasing into "Why
-us" — a deliberate cinematic beat rather than an instant cut, even though
-the next section is already the same black. The caption's rise is driven
-purely by `yPercent`, not by hand-timing it against the video's own
-motion: it carries `mix-blend-mode: screen` (`.beat-dots .beat-inner` in
-`css/styles.css`), which is a no-op over the section's own black (screen
-of any colour with black is that same colour) and only visibly picks up
-colour where it actually crosses a bright trail line as it rises — the
-"blend through the trails" effect falls out of that one CSS property
-rather than needing to be choreographed frame-by-frame. The caption is
-deliberately *not* run through the generic word-split reveal (see
-Typography below) — a viewport-relative scroll trigger on a word span
-doesn't mix well with a separate manual transform on its own pinned
-ancestor — so it gets driven by the pin timeline directly instead;
-`.beat-banner`'s caption (below, not pinned) still gets the full per-word
-treatment.
+The desktop `cover` + bleed + `scale(0.72)` combo is tuned for a wide,
+landscape viewport — below 900px wide (covers both actual mobile devices
+and a narrow/minimised desktop window, since it's a width breakpoint, not
+a device check) it was cropping most of the design out of frame instead
+of just adding margin. A media-query override switches `.hero-video` to
+`object-fit: contain` there instead, guaranteeing the whole clip stays
+visible (letterboxed against the same jet black rather than cropped),
+with a smaller bleed retained purely so the pin's own vertical parallax
+still has room to move without the now-letterboxed video clipping against
+`.hero`'s `overflow: hidden` edge.
+
+**Beat-dots — Spline "voidspiral" scene.** This section's background is
+a live third-party embed (`<iframe src="https://my.spline.design/
+voidspiral-.../">` in `index.html`, reused as `.section-video` for
+sizing/positioning) rather than a local video file — it needs real
+network access to Spline's CDN at runtime, which is a genuinely different
+reliability profile from every other background in this site (self-hosted
+files that only depend on this repo's own host). Two scroll phases, split
+across two separate `ScrollTrigger`s on the same element:
+
+1. **Approach** (`start: 'top bottom', end: 'top top'`, *not* pinned) —
+   as the section scrolls up from below the viewport, the embed grows and
+   fades from `{opacity: 0, scale: 0.85}` to `{opacity: 1, scale: 1}`,
+   finishing exactly as the section's top reaches the top of the
+   viewport. It's "appearing" during ordinary scroll, before anything
+   locks.
+2. **Pin** (`start: 'top top', end: '+=150%'`, `pin: true`) — the exact
+   moment phase 1 finishes is where this one picks up, already at full
+   opacity/scale. First a hold (0–50% of the pin) with nothing else
+   happening, giving the scene's own internal animation room to play —
+   **this is a scroll-distance estimate, not a real sync**: a plain
+   iframe embed can't report back to the parent page when its animation
+   has actually finished (that needs Spline's own runtime/eventing API
+   with named events the scene's author sets up, not just an embed URL),
+   so "spiral has completed" is approximated by scroll progress rather
+   than known for certain. Only then does the caption rise up from below
+   and settle — "the next lot of information rising out of the final
+   shape" — holds, and both fade to a true black hold before releasing
+   into "Why us". The caption's rise carries `mix-blend-mode: screen`
+   (`.beat-dots .beat-inner`), a no-op over black that only visibly picks
+   up colour where it crosses something bright — same trick as before,
+   though note it's *not guaranteed* to composite against a cross-origin
+   iframe's actual pixels the same reliable way it did against a
+   same-origin `<video>`; worth a visual check once deployed. The caption
+   is deliberately not run through the generic word-split reveal (see
+   Typography below) for the same reason as before — a viewport-relative
+   trigger on a word span doesn't mix well with a separate manual
+   transform on its own pinned ancestor — so it's driven by the pin
+   timeline directly; `.beat-banner`'s caption (below, not pinned) still
+   gets the full per-word treatment.
+
+**What couldn't be verified here.** This sandbox's outbound proxy blocks
+`my.spline.design` outright (confirmed directly — a 403 at the CONNECT
+step, not a timeout), so the actual scene was never visible in any of
+this round's testing, only the surrounding mechanics (the two
+`ScrollTrigger`s firing at the right scroll positions, the fade/scale
+math, no JS errors). Two things specifically to check once this is live
+and reachable: whether the scene's own baked-in background reads as the
+same jet black as the rest of the site (that's authored inside Spline
+itself, not something controllable from the embedding page — the
+`.section-video` container is set to `--bg-black` as a fallback, but
+can't repaint the iframe's actual rendered content if its own background
+differs), and whether the `mix-blend-mode` note above actually blends as
+intended. Separately — and this surfaced *during* testing, not
+speculation: when the iframe fails to load for any reason (blocked here,
+but the same would happen to a real visitor behind a restrictive
+firewall, an ad-blocker flagging the domain, or a Spline outage),
+Chromium renders its own default failed-navigation page, which is light
+grey — not black, and not something the embedding page's CSS can repaint,
+since a cross-origin iframe's error-page content isn't reachable from
+here. There's no reliable way to detect that failure from the parent page
+either (iframes don't fire a normal `onerror` for a blocked/rejected
+navigation the way an `<img>` does), so there's currently no automatic
+fallback for it — flagging this as a known trade-off of a live embed
+versus a self-hosted asset, not something fixed in this round.
 
 **Beat-banner — blue-flow.** Not pinned, unlike beat-dots — a normal
 scroll-through hold with `blue-flow.mp4` behind the caption, fading in/out
@@ -131,7 +190,18 @@ above), so it reads as the exact same black as every other section
 rather than a visibly different panel, checked directly by sampling the
 clip's own corner pixels rather than assumed.
 
-**Typography.** Headings/eyebrows/captions are split into words at
+**Typography.** `--font-display` (Space Grotesk) covers headings, nav
+links, the logo wordmark, buttons, eyebrows and beat captions; `--font`
+(Inter) stays on body copy/paragraphs, form fields and other long-form
+text — the same pairing rationale as before (Inter stays the more
+legible of the two at the lighter weights long-form text needs), just a
+different display face. Both load via the same Google Fonts `<link>` as
+before (`index.html`). Space Grotesk tops out at weight 700 (no 800/900),
+so the two spots that used to ask `--font-display` for 800
+(`.intro-primary`, `.service-num`) are capped at 700 now rather than
+triggering a synthetic-bold fallback.
+
+Headings/eyebrows/captions are split into words at
 runtime (`splitWords()` in `js/main.js`). Each word's opacity/position is
 tied directly to scroll progress through the block (`scrub`, not a
 fixed-duration one-shot) — the window is `top 55%` to `top 18%`, i.e. it
@@ -192,7 +262,11 @@ npx http-server
 ```
 
 GitHub Pages supports Range requests correctly, so this only affects local
-preview, not the deployed site.
+preview, not the deployed site. The beat-dots section is the one
+exception either way — it needs real outbound access to
+`my.spline.design`, locally or deployed, being a live third-party embed
+rather than a file in this repo (see "Beat-dots" above for what that
+trades off).
 
 ## Deploying to GitHub Pages
 
