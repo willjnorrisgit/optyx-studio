@@ -29,6 +29,19 @@
   --border-panel: rgba(10, 10, 10, 0.1);
   --border-panel-strong: rgba(10, 10, 10, 0.18);
 
+  /* Second, darker panel variant — used for testimonials/forms/the
+     direct-contact card specifically, where a stark white card read as
+     too glaring against the black page. A muted, textured blue (picks up
+     the sitewide grain overlay for texture) close to the accent family,
+     with light text instead of the --*-panel set's near-black. The
+     marquee cards and the case-study frame stay on --bg-panel/white on
+     purpose — this is scoped to "reviews and forms," not every card. */
+  --bg-panel-tint: linear-gradient(165deg, #1d2d47 0%, #131f33 55%, #0d1524 100%);
+  --text-panel-tint: #eaf3f9;
+  --text-panel-tint-dim: rgba(202, 224, 240, 0.72);
+  --border-panel-tint: rgba(255, 255, 255, 0.1);
+  --border-panel-tint-strong: rgba(255, 255, 255, 0.2);
+
   /* Vivid teal-blue accent (matched from the Orvixa reference's wave
      graphic) — replaces the old metallic navy. Both variants are tuned to
      read clearly against black (this used to be a light-background
@@ -595,6 +608,29 @@ body::after {
   max-width: 42ch;
 }
 
+.hero-cta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.hero-trust {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  transition: color 0.3s var(--ease-premium);
+}
+.hero-trust:hover { color: #fff; }
+
+.hero-trust-stars {
+  color: #ffc94a;
+  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+}
+
 /* Sits above .hero-stats (vertically centred) with enough clearance
    below the floating header pill (~72px + top padding) not to touch it. */
 .hero-corner-badge {
@@ -603,16 +639,16 @@ body::after {
   top: clamp(6.5rem, 13vh, 8.5rem);
   right: var(--gutter);
   margin: 0;
-  max-width: 220px;
+  max-width: 280px;
   text-align: right;
   font-family: var(--font-display);
-  font-size: clamp(1.05rem, 2vw, 1.5rem);
+  font-size: clamp(1.35rem, 2.8vw, 2rem);
   font-weight: 700;
   line-height: 1.15;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   color: #fff;
-  -webkit-text-stroke: 0.3px currentColor;
+  -webkit-text-stroke: 0.4px currentColor;
 }
 
 .hero-stats {
@@ -737,15 +773,16 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 
 .marquee-track {
   display: flex;
-  align-items: center;
-  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: stretch;
+  /* Near-zero — cards sit almost flush against each other rather than
+     spaced out as separate chips. */
+  gap: 0.35rem;
   width: max-content;
   list-style: none;
   margin: 0;
   padding: 0;
-  animation: marquee-scroll 32s linear infinite;
+  animation: marquee-scroll 38s linear infinite;
 }
-.marquee-viewport:hover .marquee-track { animation-play-state: paused; }
 
 @keyframes marquee-scroll {
   from { transform: translateX(0); }
@@ -756,35 +793,55 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.1rem 1.75rem;
-  border-radius: 14px;
+  gap: 1.1rem;
+  padding: clamp(1.75rem, 3vw, 2.5rem) clamp(2.25rem, 4vw, 3.25rem);
+  border-radius: 18px;
   background: var(--bg-panel);
   color: var(--text-panel);
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.98rem;
+  font-weight: 700;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
   white-space: nowrap;
+  transition: transform 0.35s var(--ease-premium), box-shadow 0.35s var(--ease-premium);
+}
+/* Per-card hover instead of pausing the whole loop — it keeps scrolling,
+   the card under the cursor just lifts and pops above its neighbours. */
+.marquee-item:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 20px 40px -14px rgba(0, 0, 0, 0.35);
+  z-index: 2;
 }
 
 .marquee-item svg {
-  width: 22px;
-  height: 22px;
+  width: clamp(32px, 3vw, 40px);
+  height: clamp(32px, 3vw, 40px);
   flex-shrink: 0;
+  transition: transform 0.35s var(--ease-premium);
 }
 
 .marquee-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: clamp(32px, 3vw, 40px);
+  height: clamp(32px, 3vw, 40px);
   border-radius: 50%;
-  border: 1.4px solid currentColor;
-  font-size: 0.72rem;
+  border: 2px solid currentColor;
+  font-size: 1.05rem;
   font-weight: 700;
   flex-shrink: 0;
+  transition: transform 0.35s var(--ease-premium);
 }
+
+.marquee-item:hover svg,
+.marquee-item:hover .marquee-badge {
+  transform: scale(1.12) rotate(-4deg);
+}
+/* Each brand's own colour, hand-built marks (see README) rather than
+   official assets — the badge/icon carries the colour, the label text
+   stays the card's own neutral text colour. */
+.marquee-badge--wordpress { color: #21759b; }
+.marquee-badge--stripe { color: #635bff; }
 
 @media (prefers-reduced-motion: reduce) {
   .marquee-track { animation: none; }
@@ -918,9 +975,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
     transform 0.4s var(--ease-premium);
 }
 .rail-card:hover {
-  border-color: var(--border-strong);
+  border-color: var(--accent);
   background: rgba(255, 255, 255, 0.045);
   transform: translateY(-6px);
+  box-shadow: 0 20px 40px -18px rgba(41, 180, 230, 0.35);
 }
 
 .rail-num {
@@ -931,6 +989,11 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   color: var(--accent);
   opacity: 0.6;
   margin-bottom: 1.5rem;
+  transition: opacity 0.4s var(--ease-premium), transform 0.4s var(--ease-premium);
+}
+.rail-card:hover .rail-num {
+  opacity: 1;
+  transform: translateY(-3px);
 }
 
 .rail-card h3 {
@@ -947,50 +1010,16 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   margin: 0;
 }
 
-/* Case-study card breaks to a white panel — same "card floating on
-   black" language as the testimonials/kenburns frame elsewhere, and it
-   visually separates the one real project from the process steps around
-   it rather than presenting it as one of a set. */
-.rail-card-case {
-  background: var(--bg-panel);
-  border-color: transparent;
-}
-.rail-card-case:hover { background: var(--bg-panel); transform: translateY(-6px); }
-.rail-card-case h3 { color: var(--text-panel); }
-.rail-card-case p { color: var(--text-panel-dim); }
-
-.rail-tag {
-  display: inline-block;
-  font-family: var(--font-display);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 1.5rem;
-}
-
-.rail-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 1.1rem;
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-panel);
-  border-bottom: 1px solid currentColor;
-  padding-bottom: 0.1rem;
-  transition: gap 0.3s var(--ease-premium), opacity 0.3s var(--ease-premium);
-}
-.rail-link:hover { gap: 0.65rem; opacity: 0.7; }
-
 /* ---------------------------------------------------
    Video punctuation beats — short holds, layered depth
 --------------------------------------------------- */
 
+/* Shorter than the other holds (services/why-us/rail are 130vh) —
+   shortens the scroll distance between the rail above it and this
+   section's own video/caption reveal, so it reads as connected to what
+   came before rather than a long empty gap. */
 .beat {
-  min-height: 130vh;
+  min-height: 85vh;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -1044,33 +1073,39 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   margin-bottom: 3rem;
 }
 
-/* White card floating on the black section — its own text/border tokens
-   (--*-panel), not the page-level (light-on-black) --text/--border. */
+/* Textured blue card floating on the black section (--*-panel-tint), not
+   the stark white --bg-panel used elsewhere, and not the page-level
+   (light-on-black) --text/--border either. */
 .testimonial {
   margin: 0;
   padding: 2rem;
-  border: 1px solid var(--border-panel);
+  border: 1px solid var(--border-panel-tint);
   border-radius: 16px;
-  background: var(--bg-panel);
+  background: var(--bg-panel-tint);
   will-change: transform;
-  transition: box-shadow 0.35s var(--ease-premium);
+  transition: box-shadow 0.35s var(--ease-premium), transform 0.35s var(--ease-premium);
 }
-.testimonial:hover { box-shadow: 0 20px 40px -14px rgba(10, 10, 10, 0.18); }
+.testimonial:hover {
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.55);
+  transform: translateY(-4px);
+}
 .testimonial p {
   font-size: 1.05rem;
   line-height: 1.55;
   margin: 0 0 1.25rem;
-  color: var(--text-panel);
+  color: var(--text-panel-tint);
 }
 .testimonial cite {
   font-style: normal;
-  color: var(--text-panel-dim);
+  color: var(--text-panel-tint-dim);
   font-size: 0.88rem;
 }
 
+/* Warm gold rather than the site's own blue — reads immediately as a
+   star rating against the blue card instead of blending into it. */
 .testimonial-draft .stars {
-  color: var(--accent);
-  font-size: 0.85rem;
+  color: #ffc94a;
+  font-size: 0.95rem;
   letter-spacing: 0.2em;
   margin-bottom: 0.9rem;
 }
@@ -1083,11 +1118,11 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   width: fit-content;
   margin-top: 1.1rem;
   padding: 0.4rem 0.85rem;
-  border: 1px dashed var(--border-panel-strong);
+  border: 1px dashed var(--border-panel-tint-strong);
   border-radius: 999px;
   font-size: 0.68rem;
   letter-spacing: 0.02em;
-  color: var(--text-panel-dim);
+  color: var(--text-panel-tint-dim);
 }
 
 .badges {
@@ -1100,7 +1135,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   padding: 0.65rem 1.25rem;
   border: 1px dashed var(--border-strong);
   border-radius: 999px;
-  font-size: 0.82rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--text-dim);
 }
 
@@ -1117,7 +1155,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   align-items: center;
 }
 
-/* White card (screenshot placeholder frame) — panel tokens, see .testimonial above */
+/* White card (screenshot placeholder frame) — panel tokens, see .testimonial above.
+   Hover glows the border/shadow rather than transforming — .kenburns-media
+   inside already has its own continuous GSAP scale/drift, and a CSS
+   transform here would fight it. */
 .kenburns-frame {
   position: relative;
   aspect-ratio: 16 / 11;
@@ -1126,6 +1167,11 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   overflow: hidden;
   background: var(--bg-panel);
   will-change: clip-path;
+  transition: border-color 0.4s var(--ease-premium), box-shadow 0.4s var(--ease-premium);
+}
+.kenburns-frame:hover {
+  border-color: var(--accent);
+  box-shadow: 0 20px 44px -18px rgba(41, 180, 230, 0.3);
 }
 
 .kenburns-media {
@@ -1204,23 +1250,26 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   margin-bottom: 0.5rem;
 }
 
-/* White field fill — panel tokens, see .testimonial above. color-scheme
-   overrides body's "dark" back to light for just these two elements, so
-   their native chrome (caret, autofill, resize handle) matches the white
-   fill instead of the page's own dark scheme. */
+/* Textured blue field fill — tint tokens, see .testimonial above. Fields
+   already match the page's own dark colour-scheme now (no light-scheme
+   override needed), so native chrome (caret, autofill, resize handle)
+   just follows body's default dark scheme. */
 .field input,
 .field textarea {
   width: 100%;
   padding: 0.85rem 1rem;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-panel);
+  background: var(--bg-panel-tint);
+  border: 1px solid var(--border-panel-tint);
   border-radius: 10px;
-  color: var(--text-panel);
+  color: var(--text-panel-tint);
   font-family: inherit;
   font-size: 0.98rem;
   resize: vertical;
-  color-scheme: light;
   transition: border-color 0.2s var(--ease);
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--text-panel-tint-dim);
 }
 .field input:focus,
 .field textarea:focus {
@@ -1235,23 +1284,26 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   color: var(--accent-bright);
 }
 
-/* White card floating on the black section — panel tokens, see .testimonial above */
+/* Textured blue card floating on the black section — tint tokens, see .testimonial above */
 .contact-direct {
   padding: 2rem;
-  border: 1px solid var(--border-panel);
+  border: 1px solid var(--border-panel-tint);
   border-radius: 16px;
-  background: var(--bg-panel);
+  background: var(--bg-panel-tint);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 1rem;
   will-change: transform;
-  transition: box-shadow 0.35s var(--ease-premium);
+  transition: box-shadow 0.35s var(--ease-premium), transform 0.35s var(--ease-premium);
 }
-.contact-direct:hover { box-shadow: 0 20px 40px -14px rgba(10, 10, 10, 0.18); }
+.contact-direct:hover {
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.55);
+  transform: translateY(-4px);
+}
 
 .contact-direct-label {
-  color: var(--text-panel-dim);
+  color: var(--text-panel-tint-dim);
   font-size: 0.9rem;
   margin: 0;
 }
@@ -1259,10 +1311,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 .contact-link {
   font-size: 1.15rem;
   font-weight: 600;
-  color: var(--text-panel);
-  border-bottom: 1px solid var(--border-panel-strong);
+  color: var(--text-panel-tint);
+  border-bottom: 1px solid var(--border-panel-tint-strong);
 }
-.contact-link:hover { color: var(--accent); border-color: var(--accent); }
+.contact-link:hover { color: var(--accent-bright); border-color: var(--accent-bright); }
 
 .contact-book { margin-top: 0.5rem; }
 
@@ -1272,7 +1324,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   gap: 0.6rem;
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--text-panel);
+  color: var(--text-panel-tint);
 }
 .contact-whatsapp:hover { color: #25d366; }
 .contact-whatsapp svg { width: 22px; height: 22px; flex-shrink: 0; color: #25d366; }
@@ -1323,8 +1375,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 }
 
 .footer-copy {
+  font-family: var(--font-display);
   color: var(--text-dim);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
   margin: 0;
 }
 
@@ -1398,7 +1452,8 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
      this width — dropped rather than squeezed illegibly small. */
   .hero-stats { display: none; }
 
-  .services, .why-us, .beat { min-height: 110vh; }
+  .services, .why-us { min-height: 110vh; }
+  .beat { min-height: 75vh; }
 
   .service-row { grid-template-columns: auto 1fr; gap: 1.1rem; }
   .service-num { font-size: 1.75rem; }

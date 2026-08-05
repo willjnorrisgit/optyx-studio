@@ -33,18 +33,21 @@ full-length clip with one.
 
 The site is **mainly black** end to end now — there's no more alternating
 black/off-white rhythm. Every section sits on the same `--bg-black`;
-contrast comes from white floating cards (testimonials, the contact panel,
-the case-study frame, form fields) and a vivid teal-blue accent, not from
-switching the page's own background colour:
+contrast comes from floating cards and a vivid teal-blue accent, not from
+switching the page's own background colour. Cards split into two
+palettes: the marquee and case-study frame stay stark white
+(`--bg-panel`), while testimonials, the contact panel and form fields use
+a softer, textured dark-blue variant (`--bg-panel-tint`) — see Colour
+system below for why:
 
 ```
-Hero (black, video, pinned — pill nav + headline/stats + corner badge)
+Hero (black, video, pinned — pill nav + headline/stats + corner badge + 5-star note)
   → Marquee "Built with tools you already trust" (black, right-to-left auto-scroll)
     → Services "What we do" (black, holds — tag pill per row)
       → Process rail "How it works" (black, pinned — vertical scroll drives horizontal cards)
         → Beat: blue-flow (black, video, holds — quiet, not pinned)
-          → Why us (black, holds, white testimonial/badge cards)
-            → Case study + Contact (black, runs to the footer, white cards)
+          → Why us (black, holds, textured-blue testimonial cards)
+            → Case study + Contact (black, runs to the footer, white case-study frame + textured-blue form/contact cards)
               → Footer (black — no colour of its own)
 ```
 
@@ -68,17 +71,26 @@ every section just shows its own static CSS background/opacity — a plain,
 fully-legible fallback with zero extra branching required.
 
 **Colour system.** `--text`/`--text-dim`/`--border` are the page-level
-tokens (light-on-black, for content sitting directly on a section); a
-parallel `--text-panel`/`--text-panel-dim`/`--border-panel*` set exists
-for content living inside a white `--bg-panel` card, since white-on-white
-would otherwise disappear. `--text`/`--text-dim`/`--text-on-dark` are a
-cool, faintly blue-tinted white/grey (not a neutral warm off-white) so
-body copy reads as one family with the blue gradient headings rather than
-two different palettes sharing a page. `body { color-scheme: dark }` keeps
-native UI (scrollbars, unstyled form-control fallbacks) dark by default,
-with `color-scheme: light` scoped back onto the two actual `<input>`/
-`<textarea>` fields so their own chrome doesn't get auto-dark-moded away
-from the explicit white fill. The accent (`--accent`/`--accent-bright`) is
+tokens (light-on-black, for content sitting directly on a section).
+Panel content gets one of *two* parallel token sets: `--text-panel`/
+`--text-panel-dim`/`--border-panel*` (near-black text) for the white
+`--bg-panel` cards — the marquee and the case-study frame — and
+`--text-panel-tint`/`--text-panel-tint-dim`/`--border-panel-tint*` (light,
+blue-tinted text) for the `--bg-panel-tint` cards — testimonials, the
+contact-direct panel, and form fields. `--bg-panel-tint` is a muted,
+textured dark-blue gradient rather than flat white: the original
+stark-white panels for reviews/forms read as too glaring against the rest
+of the black-and-blue page, so those specific components moved to this
+darker variant (picking up the sitewide grain texture along the way,
+see below) while the marquee/case-study frame — which weren't part of
+that complaint, and are meant to pop as bright cards — stayed on
+`--bg-panel`/white. `--text`/`--text-dim`/`--text-on-dark` are a cool,
+faintly blue-tinted white/grey (not a neutral warm off-white) so body
+copy reads as one family with the blue gradient headings rather than two
+different palettes sharing a page. `body { color-scheme: dark }` keeps
+native UI (scrollbars, unstyled form-control fallbacks) dark by default —
+form fields no longer need a `color-scheme: light` override now that
+their fill is dark too. The accent (`--accent`/`--accent-bright`) is
 a vivid teal-blue, used for eyebrows, gradient headings, links, and bullet
 dots — buttons pull from the same family (`--btn-blue`/`--btn-blue-hover`),
 see Cards & buttons below. `--bg-black` is pure `#000`, not an off-black:
@@ -99,12 +111,21 @@ would. The footer logo is the same plain wordmark. `.logo-word` runs a
 touch larger than before with a thin `-webkit-text-stroke` layered on top
 — Space Grotesk tops out at weight 700 (no 800/900, see Typography below),
 so the stroke fakes the extra boldness a heavier weight would otherwise
-give, without a synthetic-bold fallback kicking in.
+give, without a synthetic-bold fallback kicking in. `.badge` (the Why Us
+placeholder pills) and `.footer-copy` were both quietly on the body
+`--font` (Inter) before — switched to `--font-display` so the logo,
+nav, hero corner badge and every small caps/pill label on the page share
+one consistent type system rather than two.
 
 A bold `.hero-corner-badge` ("Superior Web Design") sits top-right of the
-hero, in `--font-display` to match the rest of the site's headings/nav —
-positioned to clear the floating header pill above it and the vertically-
-centred `.hero-stats` below it.
+hero, in `--font-display` and styled to match `.logo-word`'s treatment
+(letter-spacing + text-stroke) — positioned to clear the floating header
+pill above it and the vertically-centred `.hero-stats` below it. Below
+the hero CTA, `.hero-trust` is a small "★★★★★ 5-star rated by LockOn"
+line in warm gold — it reuses the same LockOn quote in the Why Us section
+that's still a draft pending Guy Lockwood's approval (see "Known
+placeholders"), so it shouldn't be read as a confirmed, sourced rating
+until that's actually signed off.
 
 The hero itself is
 **pinned** (`pin: true`) for one extra viewport height of scroll: the
@@ -141,10 +162,13 @@ still has room to move without the now-letterboxed video clipping against
 **Beat-banner — blue-flow.** The site's one remaining punctuation beat
 (there used to be two — see "Known placeholders" for the motion-trail
 video this replaced). Not pinned — a normal scroll-through hold with
-`blue-flow.mp4` behind the caption, fading in/out at its own section edges
-(`start: 'top bottom', end: 'bottom top'`) so it doesn't pop in as a
-hard-edged box. The caption gets the full per-word split-reveal treatment
-(see Typography below) like every other heading/eyebrow on the site. The
+`blue-flow.mp4` behind the caption. Shorter than the other holds (`85vh`
+vs. the `130vh` services/why-us/rail use) and its fade-in trigger starts
+at `top 85%` rather than `top bottom`, with a faster fade-in duration —
+both changes exist purely to close the scroll distance between this
+section and the process rail above it, which read as too big a gap
+before. The caption gets the full per-word split-reveal treatment (see
+Typography below) like every other heading/eyebrow on the site. The
 clip's own black background is pure `#000` — the same value `--bg-black`
 uses now (see Colour system above), so it reads as the exact same black as
 every other section rather than a visibly different panel, checked
@@ -195,30 +219,34 @@ grid. Each row also carries a small outlined tag pill (Design / Conversion
 
 **Process rail.** `.rail` (`id="process"`, sits directly after Services)
 is a horizontal-scroll section: vertical scroll drives horizontal motion
-across three "how it works" cards plus a fourth white case-study card
-linking down to LockOn. Same pin technique as the hero/beat-dots
+across four "how it works" cards (Discovery call → Design & build →
+Review & refine → Launch). Same pin technique as the hero
 (`pin: true` on the section), but instead of tweening a fixed distance it
 tweens `x`/`end` as **functions** (`x: () => -railDistance()`, with
 `invalidateOnRefresh: true`), so the scroll distance always matches the
 track's actual rendered width — card widths are viewport-relative, so
-that width isn't a constant. Deliberately framed as "how we work," not
-"browse our projects": Optyx has one real case study so far, and a rail
-that reads as a project gallery would make that thin instead of the
-process steps it's actually built to spotlight (the LockOn card is styled
-as a distinct case-study callout, not one card among a set of projects).
+that width isn't a constant. This used to end in a fifth, white
+case-study card linking to LockOn; it's since been removed so the rail is
+just the process, with LockOn's own case study living further down in its
+own section (see the Work section below) rather than doubling up here.
 
 **Tools & platforms marquee.** `.marquee-section` (between Hero and
-Services) is a continuous right-to-left auto-scroll of white cards —
+Services) is a continuous right-to-left auto-scroll of large white cards —
 Meta, Google Ads, WordPress, Python, Shopify, Stripe — each a simplified,
-hand-built icon (not the official brand asset, same approach as the
-WhatsApp icon elsewhere) paired with a text label. Framed as tools and
-platforms Optyx builds with/for, not as a client-logo strip — Optyx has
-one real case study so far (see the process rail above), so implying a
-roster of clients here would misrepresent that. Pure CSS, no GSAP: the
-track's markup is duplicated once and a `@keyframes` loop shifts it
-exactly `-50%`, so the second copy scrolls in behind the first with no
-seam; `mask-image` fades both edges for a cinematic dissolve rather than a
-hard cut, and the loop pauses on hover. Gated by its own
+hand-built icon in that brand's own colour (not the official brand asset,
+same approach as the WhatsApp icon elsewhere) paired with a bold text
+label. Framed as tools and platforms Optyx builds with/for, not as a
+client-logo strip — Optyx has one real case study so far (see the process
+rail above), so implying a roster of clients here would misrepresent
+that. Cards sit almost flush against each other (`gap: 0.35rem`) rather
+than spaced out as separate chips, matching the dense reference layout
+this was built from. Pure CSS, no GSAP: the track's markup is duplicated
+once and a `@keyframes` loop shifts it exactly `-50%`, so the second copy
+scrolls in behind the first with no seam; `mask-image` fades both edges
+for a cinematic dissolve rather than a hard cut. The loop **never
+pauses**, including on hover — instead each `.marquee-item` gets its own
+hover lift/scale (and its icon a small scale + rotate) so a card under the
+cursor pops without stopping the whole strip. Gated by its own
 `prefers-reduced-motion` media query (`animation: none`, `overflow-x:
 auto`) rather than the sitewide `motion-active` JS gate, since it doesn't
 depend on GSAP/ScrollTrigger at all.
@@ -243,9 +271,13 @@ on the CSS hover/press states and the scroll-reveal entrance alone.
 A handful of plain-CSS hover transitions layer on top of the JS-driven
 system above rather than replacing it: nav links get a sliding underline,
 the header/footer logo widens its letter-spacing, service rows brighten
-their tag pill, and process-rail/testimonial/contact cards lift or
-brighten their border — all subtle, all `--ease-premium`, none requiring
-JS since they're plain `:hover` state changes.
+their tag pill, process-rail cards lift with an accent glow (their
+numeral brightening and rising slightly too), the case-study frame glows
+its border (no transform, since `.kenburns-media` inside already has its
+own continuous GSAP scale/drift and a CSS transform here would fight it),
+and testimonial/contact cards lift with a heavier shadow now that they
+sit on the darker tint background. None of this requires JS — they're
+plain `:hover` state changes, all on `--ease-premium`.
 
 A subtle fixed grain texture (`body::after`) sits above everything at low
 opacity with `mix-blend-mode: overlay` for a bit of non-distracting depth;
@@ -318,7 +350,10 @@ material before launch:
   `css/styles.css`) for exactly that reason; do not remove the tag or
   treat the quote as a genuine testimonial until he's actually signed off
   on it. The second card is still a generic bracketed placeholder, quote
-  and attribution both to be replaced.
+  and attribution both to be replaced. The hero's `.hero-trust` "5-star
+  rated by LockOn" line (next to the main CTA) draws on this same
+  unapproved quote — same caveat applies there too, and it should be
+  reviewed alongside the testimonial itself before launch.
 - **Awards / credibility badges** — placeholder badges in the "Why us"
   section.
 - **Contact form** — currently shows a message on submit instead of

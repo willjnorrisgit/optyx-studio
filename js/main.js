@@ -266,13 +266,17 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
     gsap
       .timeline({
         scrollTrigger: {
+          // Starts once the section is already most of the way into view
+          // (not the instant it peeks in at the very bottom) and fades in
+          // fast from there, so it reads as arriving right behind the
+          // rail above it rather than after a long empty scroll.
           trigger: beatBanner,
-          start: 'top bottom',
+          start: 'top 85%',
           end: 'bottom top',
           scrub: 0.3,
         },
       })
-      .fromTo(beatBannerVideo, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.3 }, 0)
+      .fromTo(beatBannerVideo, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.15 }, 0)
       .to(beatBannerVideo, { opacity: 0, ease: 'none', duration: 0.3 }, 0.7);
   }
 
