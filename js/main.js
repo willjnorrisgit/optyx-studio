@@ -362,18 +362,29 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
     const hasParallax = el.hasAttribute('data-speed');
     gsap.fromTo(
       el,
-      { autoAlpha: 0, y: hasParallax ? 0 : 28, scale: hasParallax ? 0.96 : 1 },
+      {
+        autoAlpha: 0,
+        y: hasParallax ? 0 : 48,
+        scale: hasParallax ? 0.96 : 1,
+        filter: hasParallax ? 'none' : 'blur(6px)',
+      },
       {
         autoAlpha: 1,
         y: 0,
         scale: 1,
-        duration: 1,
+        filter: 'blur(0px)',
+        duration: 1.1,
         ease: 'premiumEase',
         scrollTrigger: { trigger: el, start: 'top 88%', once: true },
       }
     );
   });
 
+  // Numbered rows (service list) and cards (testimonials) — same bigger
+  // rise + blur-to-sharp finish as the generic reveal above, staggered
+  // per batch so a row's numeral/heading/copy/tag all arrive together as
+  // one cinematic beat, once the (now static, unanimated) title above
+  // them is already in place.
   ['.service-row', '.testimonial'].forEach((selector) => {
     ScrollTrigger.batch(selector, {
       start: 'top 88%',
@@ -381,8 +392,8 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
       onEnter: (batch) =>
         gsap.fromTo(
           batch,
-          { autoAlpha: 0, y: 28 },
-          { autoAlpha: 1, y: 0, duration: 0.9, ease: 'premiumEase', stagger: 0.12 }
+          { autoAlpha: 0, y: 48, filter: 'blur(6px)' },
+          { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 1, ease: 'premiumEase', stagger: 0.12 }
         ),
     });
   });

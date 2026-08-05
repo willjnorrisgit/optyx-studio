@@ -34,8 +34,8 @@
      too glaring against the black page. A muted, textured blue (picks up
      the sitewide grain overlay for texture) close to the accent family,
      with light text instead of the --*-panel set's near-black. The
-     marquee cards and the case-study frame stay on --bg-panel/white on
-     purpose — this is scoped to "reviews and forms," not every card. */
+     case-study frame stays on --bg-panel/white on purpose — this is
+     scoped to "reviews and forms," not every card. */
   --bg-panel-tint: linear-gradient(165deg, #1d2d47 0%, #131f33 55%, #0d1524 100%);
   --text-panel-tint: #eaf3f9;
   --text-panel-tint-dim: rgba(202, 224, 240, 0.72);
@@ -437,11 +437,14 @@ ul { list-style: none; margin: 0; padding: 0; }
   align-items: center;
   color: inherit;
 }
+/* Tight, close-together tracking — matches .hero-corner-badge's own
+   treatment (same letter-spacing + text-stroke) so the wordmark and the
+   hero badge read as one consistent, thick, clear type system. */
 .logo-word {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.32rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   color: inherit;
   line-height: 1;
@@ -451,7 +454,7 @@ ul { list-style: none; margin: 0; padding: 0; }
   -webkit-text-stroke: 0.4px currentColor;
   transition: letter-spacing 0.4s var(--ease-premium), opacity 0.4s var(--ease-premium);
 }
-.logo:hover .logo-word { letter-spacing: 0.22em; opacity: 0.8; }
+.logo:hover .logo-word { letter-spacing: 0.05em; opacity: 0.8; }
 
 /* ---------------------------------------------------
    Sections keep their own solid --bg-black as the static/reduced-motion
@@ -597,12 +600,12 @@ body::after {
   margin: 0 0 1.1rem;
 }
 
-.hero-subhead {
-  font-size: 1.02rem;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 1.75rem;
-  max-width: 42ch;
+/* Three short stacked words read better tighter and a little larger than
+   the previous two-line sentence-length headline did. */
+.hero-headline-stacked {
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  line-height: 1.05;
+  margin-bottom: 1.75rem;
 }
 
 .hero-cta-row {
@@ -628,7 +631,7 @@ body::after {
   font-size: 0.8rem;
 }
 
-/* Sits above .hero-stats (vertically centred) with enough clearance
+/* Sits above .hero-tagline (vertically centred) with enough clearance
    below the floating header pill (~72px + top padding) not to touch it. */
 .hero-corner-badge {
   position: absolute;
@@ -648,37 +651,17 @@ body::after {
   -webkit-text-stroke: 0.4px currentColor;
 }
 
-.hero-stats {
+.hero-tagline {
   position: absolute;
   right: var(--gutter);
   top: 50%;
   transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  max-width: 320px;
+  margin: 0;
   text-align: right;
-}
-
-.hero-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-}
-
-.hero-stat-num {
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: -0.01em;
-}
-
-.hero-stat-label {
-  font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.55);
-  letter-spacing: 0.02em;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .eyebrow {
@@ -735,19 +718,19 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 }
 
 /* ---------------------------------------------------
-   Tools & platforms — cinematic right-to-left marquee. Track content is
-   duplicated in the markup and the loop shifts exactly -50%, so the
-   second copy scrolls in behind the first with no seam or jump.
+   Tools & platforms — static full-width band (no auto-scroll). Every
+   item shares one uniform colour treatment (accent-tinted fill, single
+   icon/text colour) rather than each brand's own colours, so the row
+   reads as one consistent strip rather than six different palettes.
 --------------------------------------------------- */
 
-.marquee-section {
+.tools-band {
   position: relative;
   padding-block: clamp(3rem, 6vw, 5rem);
   background: var(--bg-black);
-  overflow: hidden;
 }
 
-.marquee-label {
+.tools-label {
   text-align: center;
   font-family: var(--font-display);
   font-size: 0.78rem;
@@ -758,98 +741,65 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   margin: 0 0 clamp(2rem, 4vw, 3rem);
 }
 
-.marquee-viewport {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  /* Cinematic edge fade — cards dissolve in/out at the section's edges
-     instead of hard-cutting mid-card. */
-  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-}
-
-.marquee-track {
+.tools-row {
   display: flex;
-  align-items: stretch;
-  /* Near-zero — cards sit almost flush against each other rather than
-     spaced out as separate chips. */
-  gap: 0.35rem;
-  width: max-content;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 0.6rem;
   list-style: none;
   margin: 0;
-  padding: 0;
-  animation: marquee-scroll 38s linear infinite;
+  padding: 0 var(--gutter);
 }
 
-@keyframes marquee-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-.marquee-item {
-  flex: 0 0 auto;
+.tools-item {
+  flex: 1 1 150px;
   display: flex;
   align-items: center;
-  gap: 1.1rem;
-  padding: clamp(1.75rem, 3vw, 2.5rem) clamp(2.25rem, 4vw, 3.25rem);
-  border-radius: 18px;
-  background: var(--bg-panel);
-  color: var(--text-panel);
+  justify-content: center;
+  gap: 0.85rem;
+  padding: clamp(1.5rem, 2.6vw, 2.1rem) clamp(1rem, 2vw, 1.5rem);
+  border-radius: 14px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(41, 180, 230, 0.22);
+  color: var(--accent-bright);
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
   white-space: nowrap;
-  transition: transform 0.35s var(--ease-premium), box-shadow 0.35s var(--ease-premium);
+  transition: transform 0.35s var(--ease-premium), box-shadow 0.35s var(--ease-premium),
+    background 0.35s var(--ease-premium);
 }
-/* Each brand keeps its own real wordmark style instead of the site's own
-   --font-display on every label — reads as that brand's actual badge
-   rather than our type applied to their name. Default: a neutral system
-   sans (most of these brands' own faces are close to this family), with
-   per-brand overrides where the real mark differs noticeably. */
-.marquee-item { font-family: Arial, Helvetica, sans-serif; }
-.marquee-item--wordpress { font-family: Georgia, 'Times New Roman', serif; }
-.marquee-item--stripe { font-family: Arial, Helvetica, sans-serif; text-transform: lowercase; letter-spacing: -0.01em; }
-/* Per-card hover instead of pausing the whole loop — it keeps scrolling,
-   the card under the cursor just lifts and pops above its neighbours. */
-.marquee-item:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 20px 40px -14px rgba(0, 0, 0, 0.35);
-  z-index: 2;
+.tools-item:hover {
+  transform: translateY(-6px);
+  background: rgba(41, 180, 230, 0.16);
+  box-shadow: 0 20px 40px -16px rgba(41, 180, 230, 0.35);
 }
 
-.marquee-item svg {
-  width: clamp(32px, 3vw, 40px);
-  height: clamp(32px, 3vw, 40px);
+.tools-item svg {
+  width: clamp(26px, 2.4vw, 32px);
+  height: clamp(26px, 2.4vw, 32px);
   flex-shrink: 0;
+  color: inherit;
   transition: transform 0.35s var(--ease-premium);
 }
 
-.marquee-badge {
+.tools-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: clamp(32px, 3vw, 40px);
-  height: clamp(32px, 3vw, 40px);
+  width: clamp(26px, 2.4vw, 32px);
+  height: clamp(26px, 2.4vw, 32px);
   border-radius: 50%;
   border: 2px solid currentColor;
-  font-size: 1.05rem;
+  font-size: 0.92rem;
   font-weight: 700;
   flex-shrink: 0;
   transition: transform 0.35s var(--ease-premium);
 }
 
-.marquee-item:hover svg,
-.marquee-item:hover .marquee-badge {
+.tools-item:hover svg,
+.tools-item:hover .tools-badge {
   transform: scale(1.12) rotate(-4deg);
-}
-/* Each brand's own colour, hand-built marks (see README) rather than
-   official assets — the badge/icon carries the colour, the label text
-   stays the card's own neutral text colour. */
-.marquee-badge--wordpress { color: #21759b; }
-.marquee-badge--stripe { color: #635bff; }
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track { animation: none; }
-  .marquee-viewport { overflow-x: auto; }
 }
 
 /* ---------------------------------------------------
@@ -1446,11 +1396,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   .header-inner { height: 76px; }
 
   .hero-copy { bottom: 20%; max-width: calc(100% - 2 * var(--gutter)); }
-  .hero-subhead { max-width: 100%; }
 
-  /* No room for the right-aligned stat column next to the headline at
-     this width — dropped rather than squeezed illegibly small. */
-  .hero-stats { display: none; }
+  /* No room for the right-aligned tagline next to the headline at this
+     width — dropped rather than squeezed illegibly small. */
+  .hero-tagline { display: none; }
 
   .services, .why-us { min-height: 110vh; }
   .beat { min-height: 75vh; }

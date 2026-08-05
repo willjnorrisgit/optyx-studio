@@ -27,10 +27,21 @@ visible jump) and was left alone. `blue-flow` and the current
 `dot-waves` (a supplied clip, not the original `dot-waves` this project
 had years ago under the same filename — this is a distinct, newer file)
 didn't loop cleanly — both are re-encoded from their source with a
-crossfade blended across the loop point (0.4s for `blue-flow`, 0.5s for
-`dot-waves`, via an `xfade` filter blending the true tail into the true
-head): what plays is a shorter loop with no seam rather than the original
-full-length clip with a visible jump at the wrap-around.
+crossfade blended across the loop point (0.4s for `blue-flow`, via an
+`xfade` filter blending the true tail into the true head): what plays is
+a shorter loop with no seam rather than the original full-length clip
+with a visible jump at the wrap-around. `dot-waves` went through this
+twice — the first pass used a 0.5s crossfade at `crf 20`, which visibly
+stuttered; the current version uses a much shorter 0.15s crossfade at
+`crf 23`/`preset slow` (bitrate now close to the source's own, rather
+than higher), on the theory that a long dissolve between two different
+particle configurations reads as flicker/stutter for a fast, chaotic
+field like this, where a quick cut doesn't. **Unverified** — this
+project's headless QA browser can't decode H.264 at all (see "Local
+development"), so this was reasoned from the file's own encoding
+characteristics, not confirmed by watching it play. If it still stutters,
+that's useful signal the cause is something else (e.g. decode load on a
+specific device, not the loop point).
 
 ## Page structure & motion system
 
@@ -38,14 +49,15 @@ The site is **mainly black** end to end now — there's no more alternating
 black/off-white rhythm. Every section sits on the same `--bg-black`;
 contrast comes from floating cards and a vivid teal-blue accent, not from
 switching the page's own background colour. Cards split into two
-palettes: the marquee and case-study frame stay stark white
-(`--bg-panel`), while testimonials, the contact panel and form fields use
-a softer, textured dark-blue variant (`--bg-panel-tint`) — see Colour
-system below for why:
+palettes: the case-study frame stays stark white (`--bg-panel`), while
+testimonials, the contact panel and form fields use a softer, textured
+dark-blue variant (`--bg-panel-tint`) — see Colour system below for why.
+The tools band is its own third thing again — a uniform accent-tinted
+treatment, see Tools & platforms below.
 
 ```
-Hero (black, video, pinned — pill nav + headline/stats + corner badge + 5-star note)
-  → Marquee "Built with tools you already trust" (black, right-to-left auto-scroll)
+Hero (black, video, pinned — pill nav + stacked headline + tagline + corner badge + 5-star note)
+  → Tools band "Built with tools you already trust" (black, static full-width row)
     → Services "What we do" (black, holds — tag pill per row)
       → Process rail "How it works" (black, pinned — vertical scroll drives horizontal cards)
         → Beat: blue-flow (black, video, holds — quiet, not pinned)
@@ -77,7 +89,7 @@ fully-legible fallback with zero extra branching required.
 tokens (light-on-black, for content sitting directly on a section).
 Panel content gets one of *two* parallel token sets: `--text-panel`/
 `--text-panel-dim`/`--border-panel*` (near-black text) for the white
-`--bg-panel` cards — the marquee and the case-study frame — and
+`--bg-panel` case-study frame — and
 `--text-panel-tint`/`--text-panel-tint-dim`/`--border-panel-tint*` (light,
 blue-tinted text) for the `--bg-panel-tint` cards — testimonials, the
 contact-direct panel, and form fields. `--bg-panel-tint` is a muted,
@@ -85,9 +97,11 @@ textured dark-blue gradient rather than flat white: the original
 stark-white panels for reviews/forms read as too glaring against the rest
 of the black-and-blue page, so those specific components moved to this
 darker variant (picking up the sitewide grain texture along the way,
-see below) while the marquee/case-study frame — which weren't part of
-that complaint, and are meant to pop as bright cards — stayed on
-`--bg-panel`/white. `--text`/`--text-dim`/`--text-on-dark` are a cool,
+see below) while the case-study frame — which wasn't part of that
+complaint, and is meant to pop as a bright card — stayed on
+`--bg-panel`/white. (The tools band is neither of these — it has its own
+uniform accent-tinted treatment, see Tools & platforms below.)
+`--text`/`--text-dim`/`--text-on-dark` are a cool,
 faintly blue-tinted white/grey (not a neutral warm off-white) so body
 copy reads as one family with the blue gradient headings rather than two
 different palettes sharing a page. `body { color-scheme: dark }` keeps
@@ -114,22 +128,42 @@ would. The footer logo is the same plain wordmark. `.logo-word` runs a
 touch larger than before with a thin `-webkit-text-stroke` layered on top
 — Space Grotesk tops out at weight 700 (no 800/900, see Typography below),
 so the stroke fakes the extra boldness a heavier weight would otherwise
-give, without a synthetic-bold fallback kicking in. `.badge` (the Why Us
-placeholder pills) and `.footer-copy` were both quietly on the body
-`--font` (Inter) before — switched to `--font-display` so the logo,
+give, without a synthetic-bold fallback kicking in. Its letter-spacing is
+now tight (`0.01em`, was a much wider `0.16em`) to match
+`.hero-corner-badge`'s own tracking — the two are meant to read as one
+consistent "thick, close-together" type treatment rather than the
+wider-tracked caps-label style used for nav/eyebrow text. `.badge` (the
+Why Us placeholder pills) and `.footer-copy` were both quietly on the
+body `--font` (Inter) before — switched to `--font-display` so the logo,
 nav, hero corner badge and every small caps/pill label on the page share
 one consistent type system rather than two.
 
 A bold `.hero-corner-badge` ("Superior Web Design") sits top-right of the
 hero, in `--font-display` and styled to match `.logo-word`'s treatment
 (letter-spacing + text-stroke) — positioned to clear the floating header
-pill above it and the vertically-centred `.hero-stats` below it. Below
-the hero CTA, `.hero-trust` is a small "★★★★★ 5-star rated by clients"
-line in warm gold — it reuses the same LockOn quote in the Why Us section
-that's still a draft pending Guy Lockwood's approval (see "Known
-placeholders"), so it shouldn't be read as a confirmed, sourced rating
-until that's actually signed off, even though the visible copy no longer
-names LockOn directly.
+pill above it and the vertically-centred `.hero-tagline` below it. Below
+the hero CTA, `.hero-trust` is a small "★★★★★ 5-star rated by our
+customers" line in warm gold — it reuses the same LockOn quote in the Why
+Us section that's still a draft pending Guy Lockwood's approval (see
+"Known placeholders"), so it shouldn't be read as a confirmed, sourced
+rating until that's actually signed off, even though the visible copy
+doesn't name LockOn or say "clients."
+
+The headline is now **"Design. Develop. Deliver."**, stacked vertically
+one word per line (`.hero-headline-stacked`, three `<br>`-separated
+words, bigger and tighter-leading than the previous two-line sentence
+headline) — a deliberate, explicit choice this round, not an accidental
+echo of an earlier reference image an earlier round had been told
+specifically *not* to copy verbatim; the instruction changed, so the
+copy did. The old subhead paragraph is gone entirely — nothing replaced
+it, the CTA row now sits directly under the headline. The old `[X]+`
+years/projects stat blocks are gone too, replaced by `.hero-tagline`, a
+short descriptive line ("An innovative web design agency, transforming
+big ideas onto a screen.") in the same right-aligned, vertically-centred
+slot — this reads as a real, honest sentence rather than a numeric claim
+Optyx can't yet back up, which was always a placeholder (see previous
+revisions of "Known placeholders" — no longer applicable, since there's
+no fake number to caveat anymore).
 
 The hero itself is
 **pinned** (`pin: true`) for one extra viewport height of scroll: the
@@ -137,16 +171,16 @@ video retreats upward for the whole pinned range (there's currently no
 badge to animate alongside it — `heroTl`'s badge tweens are gated behind
 `if (heroLogo)` and simply skip themselves while `.hero-logo` doesn't
 exist in the DOM, so the video's own motion isn't affected either way).
-The headline/subhead/CTA/stat blocks sit outside the pin timeline
-entirely and stay static throughout. The video itself is **full-bleed,
-edge-to-edge** (a previous round scaled it down into a contained box with
-black margin around it; that treatment was dropped in favour of filling
-the whole hero, matching the reference this was built from) — GSAP only
-tweens its `y` (see `heroTl`), which still works unchanged since there's
-no baseline transform left to compose against. Three stacked gradients in
+The headline/CTA/tagline blocks sit outside the pin timeline entirely and
+stay static throughout. The video itself is **full-bleed, edge-to-edge**
+(a previous round scaled it down into a contained box with black margin
+around it; that treatment was dropped in favour of filling the whole
+hero, matching the reference this was built from) — GSAP only tweens its
+`y` (see `heroTl`), which still works unchanged since there's no baseline
+transform left to compose against. Three stacked gradients in
 `.hero-overlay` additionally darken the lower-left quadrant specifically
-(where the headline/subhead/CTA sit) regardless of what the looping video
-is doing behind them at any given moment, rather than relying on the
+(where the headline/CTA sit) regardless of what the looping video is
+doing behind them at any given moment, rather than relying on the
 video's own crop to keep that zone clear. The headline itself is
 uppercase with a small amount of positive tracking (`.hero-headline`) to
 match the reference layout's bold geometric look, rather than the
@@ -216,6 +250,15 @@ gradient text-clip — a single plain-element selector for `.section-title`
 `.beat-caption` (`background-clip: text` doesn't reliably composite
 through the nested `inline-block` word wrappers a split needs).
 
+Everything else marked `.reveal` — including the numbered service rows
+and testimonial cards, i.e. the "numbering etc." sitting under a
+title — follows the same title-first idea at a coarser grain: a bigger
+rise (`y: 48`, was `28`) plus a blur-to-sharp finish (`blur(6px)` →
+`blur(0px)`), matching the weight of the word-split treatment above, so
+a section reads as one cinematic beat — static title already in place,
+then everything beneath it arriving together from below — rather than
+a light, incidental fade.
+
 **Depth & images.** Any element with `data-speed` (the background blobs,
 `.beat-inner`, the case-study image) gets an independent scroll-scrubbed
 parallax offset, scaled down for mobile via `gsap.matchMedia()`. The
@@ -241,38 +284,29 @@ case-study card linking to LockOn; it's since been removed so the rail is
 just the process, with LockOn's own case study living further down in its
 own section (see the Work section below) rather than doubling up here.
 
-**Tools & platforms marquee.** `.marquee-section` (between Hero and
-Services) is a continuous right-to-left auto-scroll of large white cards —
-Meta, Google Ads, WordPress, Python, Shopify, Stripe — each a simplified,
-hand-built icon in that brand's own colour (not the official brand asset,
-same approach as the WhatsApp icon elsewhere) paired with a text label.
-**Cannot fetch real logo image assets in this sandbox** — outbound
-network is blocked to essentially every asset CDN, so every mark here is
-still hand-built, not an official file. What changed this round: each
-label now sets its own typography instead of uniformly borrowing the
-site's own `--font-display` — `.marquee-item--wordpress` uses a serif
-face (WordPress's real wordmark is serif), `.marquee-item--stripe` sets
-its label lowercase (`stripe`, matching the real logo's casing), and
-everything else defaults to a neutral system sans (Arial/Helvetica)
-rather than the site's own geometric display face — the goal being each
-card reads more like that brand's actual mark and less like our own type
-applied to their name. If pixel-perfect brand accuracy matters, swap in
-official SVG/PNG logo files (see "Known placeholders"). Framed as tools
-and platforms Optyx builds with/for, not as a client-logo strip — Optyx
-has one real case study so far (see the process rail above), so implying
-a roster of clients here would misrepresent that. Cards sit almost flush
-against each other (`gap: 0.35rem`) rather than spaced out as separate
-chips, matching the dense reference layout this was built from. Pure CSS,
-no GSAP: the track's markup is duplicated
-once and a `@keyframes` loop shifts it exactly `-50%`, so the second copy
-scrolls in behind the first with no seam; `mask-image` fades both edges
-for a cinematic dissolve rather than a hard cut. The loop **never
-pauses**, including on hover — instead each `.marquee-item` gets its own
-hover lift/scale (and its icon a small scale + rotate) so a card under the
-cursor pops without stopping the whole strip. Gated by its own
-`prefers-reduced-motion` media query (`animation: none`, `overflow-x:
-auto`) rather than the sitewide `motion-active` JS gate, since it doesn't
-depend on GSAP/ScrollTrigger at all.
+**Tools & platforms band.** `.tools-band` (between Hero and Services) is
+now a **static, full-width row** — Meta, Google Ads, WordPress, Python,
+Shopify, Stripe, each `.tools-item` a `flex: 1 1 150px` cell so the six
+items stretch to fill the viewport edge to edge and wrap onto a second
+row on narrow screens, rather than the auto-scrolling loop this used to
+be (no `@keyframes`, no `.marquee-section`/`.marquee-track`/
+`.marquee-viewport` scaffolding — that's all gone, renamed to
+`.tools-band`/`.tools-row`/`.tools-item` to stop implying a marquee that
+no longer exists). Every icon and label now shares **one uniform colour**
+(`var(--accent-dim)` fill, `var(--accent-bright)` icon/text, a hairline
+accent border) instead of each brand's own colours — icons are drawn
+with `stroke="currentColor"` rather than brand-hex fills, so recolouring
+the whole row is one CSS variable away. Each item still gets its own
+hover lift + icon scale/rotate, same as before. **Cannot fetch real logo
+image assets in this sandbox** — outbound network is blocked to
+essentially every asset CDN, so every mark is still hand-built (not an
+official file), just simpler line-icon versions now that colour is
+uniform rather than brand-accurate. If pixel-perfect brand accuracy
+matters, swap in official SVG/PNG logo files (see "Known placeholders").
+Framed as tools and platforms Optyx builds with/for, not as a
+client-logo strip — Optyx has one real case study so far (see the
+process rail above), so implying a roster of clients here would
+misrepresent that.
 
 **Cards & buttons.** `.btn-primary` uses its own gradient
 (`--btn-blue`/`--btn-blue-hover`) pulled in close to the vivid teal
@@ -356,10 +390,6 @@ material before launch:
   still there and gated behind `if (heroLogo)`, so dropping a new
   `.hero-logo` element back into the hero markup picks the drop/fade
   motion back up automatically with no JS changes needed.
-- **Hero stats** — the two `[X]+` stat blocks (`.hero-stat-num` in
-  `index.html`) are bracketed placeholders — Optyx Studio has no verified
-  track record yet, so these are deliberately not real numbers. Fill in
-  once there's an honest count for years/projects.
 - **Case study screenshot** — `.screenshot-placeholder` in the "Work"
   section. Replace with an `<img>` of the real LockOn site.
 - **Case study results** — bracketed metrics in the case study section.
@@ -376,12 +406,12 @@ material before launch:
 - **`assets/video/grey-marketing-banner.mp4`** — no longer referenced
   anywhere; the file is still in the repo in case it's wanted again, safe
   to delete otherwise.
-- **Tools & platforms marquee logos** — the six icons in
-  `.marquee-track` (Meta, Google Ads, WordPress, Python, Shopify, Stripe)
-  are hand-built simplified marks, not the official brand assets — same
-  caveat as the WhatsApp icon below. Swap in official SVGs if
-  pixel-perfect brand accuracy matters, and double-check each brand's
-  usage guidelines before shipping their mark live.
+- **Tools & platforms band logos** — the six icons in `.tools-row` (Meta,
+  Google Ads, WordPress, Python, Shopify, Stripe) are hand-built
+  simplified marks, not the official brand assets — same caveat as the
+  WhatsApp icon below. Swap in official SVGs if pixel-perfect brand
+  accuracy matters, and double-check each brand's usage guidelines before
+  shipping their mark live.
 - **Testimonials** — one of the two cards in the "Why us" section is a
   **drafted** 5-star quote attributed to Guy Lockwood (CEO, LockOn),
   written by Optyx to match the site's tone — Guy Lockwood has not
