@@ -17,9 +17,12 @@
   --border-strong: rgba(255, 255, 255, 0.2);
   --border-dark: rgba(255, 255, 255, 0.14);
 
-  --text: #f5f4f1;
-  --text-dim: rgba(245, 244, 241, 0.62);
-  --text-on-dark: #f5f4f1;
+  /* Cool, faintly blue-tinted whites/greys rather than a neutral warm
+     off-white — reads as one family with the blue gradient headings
+     instead of two different palettes sharing a page. */
+  --text: #e8f2f8;
+  --text-dim: rgba(198, 223, 236, 0.72);
+  --text-on-dark: #e8f2f8;
 
   --text-panel: #0d0d0e;
   --text-panel-dim: #55555c;
@@ -35,11 +38,12 @@
   --accent-bright: #5cd6f7;
   --accent-dim: rgba(41, 180, 230, 0.18);
 
-  /* Darker metallic-blue gradient, scoped to primary buttons only
-     (everything above stays the vivid teal-blue) — a deep steel/navy
-     blue rather than the flat, pale accent fill buttons had before. */
-  --btn-blue: linear-gradient(135deg, #2f6386 0%, #17324a 60%, #0f2432 100%);
-  --btn-blue-hover: linear-gradient(135deg, #3d7699 0%, #1f405a 60%, #142c3d 100%);
+  /* Button gradient, scoped to primary buttons only — pulled back in
+     close to the vivid teal --accent/--accent-bright family (was a much
+     darker steel/navy) so the CTA reads as the same blue as the rest of
+     the site rather than a separate, muted colour of its own. */
+  --btn-blue: linear-gradient(135deg, #5cd6f7 0%, #29b4e6 55%, #1a86ad 100%);
+  --btn-blue-hover: linear-gradient(135deg, #7fe0fa 0%, #3ec2f0 55%, #237ea3 100%);
 
   /* Space Grotesk (headings, nav, buttons, labels — geometric grotesk) +
      Inter (body copy, stays the more legible of the two at the lighter
@@ -241,6 +245,8 @@ ul { list-style: none; margin: 0; padding: 0; }
   font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   border: 1px solid transparent;
   cursor: pointer;
   transition: transform 0.2s var(--ease), background 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
@@ -421,11 +427,15 @@ ul { list-style: none; margin: 0; padding: 0; }
 .logo-word {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.32rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: inherit;
   line-height: 1;
+  /* Space Grotesk tops out at weight 700 (no 800/900) — the thin
+     text-stroke fakes the extra boldness a heavier weight would give
+     without triggering a synthetic-bold fallback. */
+  -webkit-text-stroke: 0.4px currentColor;
   transition: letter-spacing 0.4s var(--ease-premium), opacity 0.4s var(--ease-premium);
 }
 .logo:hover .logo-word { letter-spacing: 0.22em; opacity: 0.8; }
@@ -585,6 +595,26 @@ body::after {
   max-width: 42ch;
 }
 
+/* Sits above .hero-stats (vertically centred) with enough clearance
+   below the floating header pill (~72px + top padding) not to touch it. */
+.hero-corner-badge {
+  position: absolute;
+  z-index: 2;
+  top: clamp(6.5rem, 13vh, 8.5rem);
+  right: var(--gutter);
+  margin: 0;
+  max-width: 220px;
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #fff;
+  -webkit-text-stroke: 0.3px currentColor;
+}
+
 .hero-stats {
   position: absolute;
   right: var(--gutter);
@@ -657,6 +687,108 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   font-size: 1.05rem;
   max-width: 55ch;
   margin: 0 0 3rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------
+   Tools & platforms — cinematic right-to-left marquee. Track content is
+   duplicated in the markup and the loop shifts exactly -50%, so the
+   second copy scrolls in behind the first with no seam or jump.
+--------------------------------------------------- */
+
+.marquee-section {
+  position: relative;
+  padding-block: clamp(3rem, 6vw, 5rem);
+  background: var(--bg-black);
+  overflow: hidden;
+}
+
+.marquee-label {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 clamp(2rem, 4vw, 3rem);
+}
+
+.marquee-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  /* Cinematic edge fade — cards dissolve in/out at the section's edges
+     instead of hard-cutting mid-card. */
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  width: max-content;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  animation: marquee-scroll 32s linear infinite;
+}
+.marquee-viewport:hover .marquee-track { animation-play-state: paused; }
+
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee-item {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.1rem 1.75rem;
+  border-radius: 14px;
+  background: var(--bg-panel);
+  color: var(--text-panel);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.98rem;
+  white-space: nowrap;
+}
+
+.marquee-item svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.marquee-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.4px solid currentColor;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+  .marquee-viewport { overflow-x: auto; }
 }
 
 /* ---------------------------------------------------
@@ -749,7 +881,7 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 /* ---------------------------------------------------
    Process rail — vertical scroll drives horizontal motion (see
    js/main.js). Sized to one viewport since the pin's own scroll
-   distance provides the hold, same reasoning as .beat-dots below.
+   distance is what provides the hold.
 --------------------------------------------------- */
 
 .rail {
@@ -867,28 +999,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   text-align: center;
 }
 
-/* Pinned (see js/main.js) — sized to exactly one viewport, like .hero,
-   since the pin's own scroll distance (not section height) is what
-   provides the hold; min-height: 130vh here would just pin an
-   oversized box with 30vh permanently hanging off the bottom edge. */
-.beat-dots {
-  min-height: 100vh;
-  min-height: 100svh;
-}
-
 .beat-inner {
   position: relative;
   z-index: 2;
   width: 100%;
-}
-
-/* "Blend through the trails" — over the section's own black this looks
-   identical to normal text (screen of any colour with black is that same
-   colour), so it only visibly picks up colour where it actually crosses
-   a bright trail line as it rises into place (see the pin timeline in
-   js/main.js) — no need to hand-time it against the video's own motion. */
-.beat-dots .beat-inner {
-  mix-blend-mode: screen;
 }
 
 .beat-caption {

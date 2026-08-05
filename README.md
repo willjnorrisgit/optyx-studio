@@ -15,8 +15,8 @@ js/main.js                                Intro, GSAP/ScrollTrigger/Lenis motion
 assets/favicon.svg                        Browser tab icon (plain ring mark, no badge — see below)
 assets/optyx-badge.svg                    Unused for now (see "Known placeholders") — not referenced anywhere
 assets/video/abstract-art-03.mp4          Hero background loop
-assets/video/motion-trail.mp4             Beat-dots (particles) background loop
-assets/video/blue-flow.mp4                Beat-banner background loop
+assets/video/motion-trail.mp4             Unused — kept in assets/, no longer referenced (see below)
+assets/video/blue-flow.mp4                The site's one remaining punctuation-beat background loop
 assets/video/grey-marketing-banner.mp4    Unused — kept in assets/, no longer referenced (see below)
 ```
 
@@ -38,12 +38,12 @@ the case-study frame, form fields) and a vivid teal-blue accent, not from
 switching the page's own background colour:
 
 ```
-Hero (black, video, pinned — pill nav + headline/stats)
-  → Services "What we do" (black, holds — tag pill per row)
-    → Process rail "How it works" (black, pinned — vertical scroll drives horizontal cards)
-      → Beat: motion-trail particles (black, video, pinned + content rises over it)
-        → Why us (black, holds, white testimonial/badge cards)
-          → Beat: blue-flow (black, video, holds — quiet, not pinned)
+Hero (black, video, pinned — pill nav + headline/stats + corner badge)
+  → Marquee "Built with tools you already trust" (black, right-to-left auto-scroll)
+    → Services "What we do" (black, holds — tag pill per row)
+      → Process rail "How it works" (black, pinned — vertical scroll drives horizontal cards)
+        → Beat: blue-flow (black, video, holds — quiet, not pinned)
+          → Why us (black, holds, white testimonial/badge cards)
             → Case study + Contact (black, runs to the footer, white cards)
               → Footer (black — no colour of its own)
 ```
@@ -71,17 +71,21 @@ fully-legible fallback with zero extra branching required.
 tokens (light-on-black, for content sitting directly on a section); a
 parallel `--text-panel`/`--text-panel-dim`/`--border-panel*` set exists
 for content living inside a white `--bg-panel` card, since white-on-white
-would otherwise disappear. `body { color-scheme: dark }` keeps native UI
-(scrollbars, unstyled form-control fallbacks) dark by default, with
-`color-scheme: light` scoped back onto the two actual `<input>`/
+would otherwise disappear. `--text`/`--text-dim`/`--text-on-dark` are a
+cool, faintly blue-tinted white/grey (not a neutral warm off-white) so
+body copy reads as one family with the blue gradient headings rather than
+two different palettes sharing a page. `body { color-scheme: dark }` keeps
+native UI (scrollbars, unstyled form-control fallbacks) dark by default,
+with `color-scheme: light` scoped back onto the two actual `<input>`/
 `<textarea>` fields so their own chrome doesn't get auto-dark-moded away
 from the explicit white fill. The accent (`--accent`/`--accent-bright`) is
 a vivid teal-blue, used for eyebrows, gradient headings, links, and bullet
-dots — buttons are their own separate darker-blue system, see Cards &
-buttons below. `--bg-black` is pure `#000`, not an off-black: the section
-videos render at `(0,0,0)` themselves, and a lighter `--bg-black` used to
-read as a faint seam against them wherever a video faded in/out, breaking
-the "one consistent black" the site is going for between sections.
+dots — buttons pull from the same family (`--btn-blue`/`--btn-blue-hover`),
+see Cards & buttons below. `--bg-black` is pure `#000`, not an off-black:
+the section videos render at `(0,0,0)` themselves, and a lighter
+`--bg-black` used to read as a faint seam against them wherever a video
+faded in/out, breaking the "one consistent black" the site is going for
+between sections.
 
 **Header & hero.** The header (`.site-header`) is a floating rounded pill
 (blurred semi-transparent fill, inset from the top) rather than a flush
@@ -91,7 +95,18 @@ wordmark, no icon (see "Known placeholders") — a normal in-page link to
 `#top` for no-JS/reduced-motion visitors; with JS it also clears the
 intro's session flag and does a full navigation back to the page root, so
 clicking it replays the intro from scratch exactly as a first visit
-would. The footer logo is the same plain wordmark. The hero itself is
+would. The footer logo is the same plain wordmark. `.logo-word` runs a
+touch larger than before with a thin `-webkit-text-stroke` layered on top
+— Space Grotesk tops out at weight 700 (no 800/900, see Typography below),
+so the stroke fakes the extra boldness a heavier weight would otherwise
+give, without a synthetic-bold fallback kicking in.
+
+A bold `.hero-corner-badge` ("Superior Web Design") sits top-right of the
+hero, in `--font-display` to match the rest of the site's headings/nav —
+positioned to clear the floating header pill above it and the vertically-
+centred `.hero-stats` below it.
+
+The hero itself is
 **pinned** (`pin: true`) for one extra viewport height of scroll: the
 video retreats upward for the whole pinned range (there's currently no
 badge to animate alongside it — `heroTl`'s badge tweens are gated behind
@@ -123,35 +138,17 @@ with a smaller bleed retained purely so the pin's own vertical parallax
 still has room to move without the now-letterboxed video clipping against
 `.hero`'s `overflow: hidden` edge.
 
-**Beat-dots — motion-trail pin-and-hold.** Same pinning technique as the
-hero: once `.beat-dots` reaches the top of the viewport it locks in place
-for ~1.5 screens (`end: '+=150%'`). The video fades in, the caption rises
-up from below the frame and settles onto the page, holds for a beat, then
-both fade out together to a genuine black hold before releasing into "Why
-us" — a deliberate cinematic beat rather than an instant cut, even though
-the next section is already the same black. The caption's rise is driven
-purely by `yPercent`, not by hand-timing it against the video's own
-motion: it carries `mix-blend-mode: screen` (`.beat-dots .beat-inner` in
-`css/styles.css`), which is a no-op over the section's own black (screen
-of any colour with black is that same colour) and only visibly picks up
-colour where it actually crosses a bright trail line as it rises — the
-"blend through the trails" effect falls out of that one CSS property
-rather than needing to be choreographed frame-by-frame. The caption is
-deliberately *not* run through the generic word-split reveal (see
-Typography below) — a viewport-relative scroll trigger on a word span
-doesn't mix well with a separate manual transform on its own pinned
-ancestor — so it gets driven by the pin timeline directly instead;
-`.beat-banner`'s caption (below, not pinned) still gets the full per-word
-treatment.
-
-**Beat-banner — blue-flow.** Not pinned, unlike beat-dots — a normal
-scroll-through hold with `blue-flow.mp4` behind the caption, fading in/out
-at its own section edges (`start: 'top bottom', end: 'bottom top'`) so it
-doesn't pop in as a hard-edged box. The clip's own black background is
-pure `#000` — the same value `--bg-black` uses now (see Colour system
-above), so it reads as the exact same black as every other section
-rather than a visibly different panel, checked directly by sampling the
-clip's own corner pixels rather than assumed.
+**Beat-banner — blue-flow.** The site's one remaining punctuation beat
+(there used to be two — see "Known placeholders" for the motion-trail
+video this replaced). Not pinned — a normal scroll-through hold with
+`blue-flow.mp4` behind the caption, fading in/out at its own section edges
+(`start: 'top bottom', end: 'bottom top'`) so it doesn't pop in as a
+hard-edged box. The caption gets the full per-word split-reveal treatment
+(see Typography below) like every other heading/eyebrow on the site. The
+clip's own black background is pure `#000` — the same value `--bg-black`
+uses now (see Colour system above), so it reads as the exact same black as
+every other section rather than a visibly different panel, checked
+directly by sampling the clip's own corner pixels rather than assumed.
 
 **Typography.** `--font-display` (Space Grotesk) covers headings, nav
 links, the logo wordmark, buttons, eyebrows and beat captions; `--font`
@@ -210,12 +207,32 @@ that reads as a project gallery would make that thin instead of the
 process steps it's actually built to spotlight (the LockOn card is styled
 as a distinct case-study callout, not one card among a set of projects).
 
-**Cards & buttons.** `.btn-primary` uses its own darker metallic-blue
-gradient (`--btn-blue`/`--btn-blue-hover`, a deep steel/navy blend rather
-than a flat fill) with a thin inset highlight/shadow pair for a brushed-
-metal edge, separate from the vivid teal `--accent` used everywhere else
-— feedback was that the flat teal fill read as too pale/"baby blue" for a
-primary CTA. On `(hover: hover) and (pointer: fine)` devices only:
+**Tools & platforms marquee.** `.marquee-section` (between Hero and
+Services) is a continuous right-to-left auto-scroll of white cards —
+Meta, Google Ads, WordPress, Python, Shopify, Stripe — each a simplified,
+hand-built icon (not the official brand asset, same approach as the
+WhatsApp icon elsewhere) paired with a text label. Framed as tools and
+platforms Optyx builds with/for, not as a client-logo strip — Optyx has
+one real case study so far (see the process rail above), so implying a
+roster of clients here would misrepresent that. Pure CSS, no GSAP: the
+track's markup is duplicated once and a `@keyframes` loop shifts it
+exactly `-50%`, so the second copy scrolls in behind the first with no
+seam; `mask-image` fades both edges for a cinematic dissolve rather than a
+hard cut, and the loop pauses on hover. Gated by its own
+`prefers-reduced-motion` media query (`animation: none`, `overflow-x:
+auto`) rather than the sitewide `motion-active` JS gate, since it doesn't
+depend on GSAP/ScrollTrigger at all.
+
+**Cards & buttons.** `.btn-primary` uses its own gradient
+(`--btn-blue`/`--btn-blue-hover`) pulled in close to the vivid teal
+`--accent`/`--accent-bright` used everywhere else (it used to be a much
+darker, desaturated steel/navy blend) so the CTA reads as the same blue as
+the rest of the site rather than a separate, muted colour of its own; a
+thin inset highlight/shadow pair keeps a bit of a brushed-metal edge so it
+doesn't go flat. Every `.btn` sets its own label text uppercase
+(`text-transform: uppercase`) with a touch of extra letter-spacing rather
+than relying on manually capitalised copy. On `(hover: hover) and
+(pointer: fine)` devices only:
 testimonials and the direct-contact panel get a cursor-follow 3D tilt +
 lift via `gsap.quickTo`; every `.btn` gets a magnetic hover (pulls toward
 the cursor within a proximity radius, `power3.out` while tracking,
@@ -277,13 +294,22 @@ material before launch:
 - **Case study screenshot** — `.screenshot-placeholder` in the "Work"
   section. Replace with an `<img>` of the real LockOn site.
 - **Case study results** — bracketed metrics in the case study section.
-- **Beat captions** — "Every pixel earns its place." / "Built to perform
-  under real ad spend." (`.beat-caption` in `index.html`) are placeholder
-  microcopy for the two dark punctuation sections.
+- **Beat caption** — "Built to perform under real ad spend."
+  (`.beat-caption` in `index.html`) is placeholder microcopy for the
+  site's one remaining dark punctuation section.
+- **`assets/video/motion-trail.mp4`** — no longer referenced anywhere (the
+  site went from two punctuation-beat sections down to one, see Page
+  structure above); the file is still in the repo in case it's wanted
+  again, safe to delete otherwise.
 - **`assets/video/grey-marketing-banner.mp4`** — no longer referenced
-  anywhere (the second beat section is now a quiet video-free hold); the
-  file is still in the repo in case it's wanted again, safe to delete
-  otherwise.
+  anywhere; the file is still in the repo in case it's wanted again, safe
+  to delete otherwise.
+- **Tools & platforms marquee logos** — the six icons in
+  `.marquee-track` (Meta, Google Ads, WordPress, Python, Shopify, Stripe)
+  are hand-built simplified marks, not the official brand assets — same
+  caveat as the WhatsApp icon below. Swap in official SVGs if
+  pixel-perfect brand accuracy matters, and double-check each brand's
+  usage guidelines before shipping their mark live.
 - **Testimonials** — one of the two cards in the "Why us" section is a
   **drafted** 5-star quote attributed to Guy Lockwood (CEO, LockOn),
   written by Optyx to match the site's tone — Guy Lockwood has not

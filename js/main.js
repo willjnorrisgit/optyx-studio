@@ -251,57 +251,13 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   }
 
   // ---------------------------------------------------
-  // Beat-dots — motion-trail pin-and-hold. Once the section reaches the
-  // top of the viewport it locks in place for ~1.5 screens: the video
-  // fades in, the caption rises up from below the frame and settles onto
-  // the page (its CSS mix-blend-mode does the "blend through the trails"
-  // part on its own — over the section's own black it looks identical to
-  // normal text, and only picks up colour where it actually crosses a
-  // bright trail line, so no extra timing/coordinate work is needed to
-  // sync it to the video's own motion), holds for a beat, then both fade
-  // out together to a true black hold before releasing into why-us — a
-  // deliberate cinematic beat rather than an instant cut, even though the
-  // next section is already the same black.
-  // ---------------------------------------------------
-  const beatDots = document.querySelector('.beat-dots');
-  const beatDotsVideo = beatDots ? beatDots.querySelector('.section-video') : null;
-  const beatDotsInner = beatDots ? beatDots.querySelector('.beat-inner') : null;
-
-  if (beatDots && beatDotsVideo && beatDotsInner) {
-    const beatPinDistance = isSmallScreen() ? '120%' : '150%';
-
-    gsap
-      .timeline({
-        scrollTrigger: {
-          trigger: beatDots,
-          start: 'top top',
-          end: `+=${beatPinDistance}`,
-          scrub: 1,
-          pin: true,
-          anticipatePin: 1,
-        },
-      })
-      // video: fades in early, holds, fades out well before release —
-      // leaving a genuine black hold at the very end, not a hard cut
-      .fromTo(beatDotsVideo, { opacity: 0 }, { opacity: 1, ease: 'none', duration: 0.14 }, 0)
-      .to(beatDotsVideo, { opacity: 0, ease: 'none', duration: 0.2 }, 0.72)
-      // caption: rises up from below the frame — a full "slide" of scroll
-      // to get there — fading in early in that rise so it's visible while
-      // still crossing the video's centre, settles, holds, then fades out
-      // together with the video for the cinematic black beat
-      .fromTo(beatDotsInner, { yPercent: 70 }, { yPercent: 0, ease: 'power2.out', duration: 0.55 }, 0)
-      .fromTo(beatDotsInner, { autoAlpha: 0 }, { autoAlpha: 1, ease: 'none', duration: 0.3 }, 0.05)
-      .to(beatDotsInner, { autoAlpha: 0, ease: 'none', duration: 0.2 }, 0.72);
-  }
-
-  // ---------------------------------------------------
-  // Beat-banner — blue-flow video fade. Not pinned (a normal scroll-through
-  // hold, unlike beat-dots above), so it just needs a plain fade-in/out at
-  // its own section edges rather than a pin timeline: fully faded in by
-  // the time the section is centred in the viewport, fully faded out again
-  // before it leaves — a hard-edged video box popping in/out at the
-  // section boundary would be the only rough edge left now that there's no
-  // colour ramp to hide it against.
+  // Beat-banner — blue-flow video fade. Not pinned — a normal scroll-through
+  // hold, so it just needs a plain fade-in/out at its own section edges
+  // rather than a pin timeline: fully faded in by the time the section is
+  // centred in the viewport, fully faded out again before it leaves — a
+  // hard-edged video box popping in/out at the section boundary would be
+  // the only rough edge left now that there's no colour ramp to hide it
+  // against.
   // ---------------------------------------------------
   const beatBanner = document.querySelector('.beat-banner');
   const beatBannerVideo = beatBanner ? beatBanner.querySelector('.section-video') : null;
@@ -360,11 +316,6 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   // reads as prompt rather than a long, slow reveal.
   const mobileType = isSmallScreen();
   document.querySelectorAll('.eyebrow, .section-title, .why-sub, .beat-caption').forEach((el) => {
-    // .beat-dots' own caption is driven by its pin timeline above instead
-    // (a viewport-relative trigger on a word span doesn't mix well with a
-    // separate manual transform on its pinned ancestor) — .beat-banner's
-    // caption is untouched and still gets the full word-level reveal.
-    if (el.closest('.beat-dots')) return;
     const words = splitWords(el);
     if (!words.length) return;
     gsap.fromTo(
