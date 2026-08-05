@@ -39,13 +39,24 @@ switching the page's own background colour:
 
 ```
 Hero (black, video, pinned — pill nav + headline/stats)
-  → Services "What we do" (black, holds)
-    → Beat: motion-trail particles (black, video, pinned + content rises over it)
-      → Why us (black, holds, white testimonial/badge cards)
-        → Beat: blue-flow (black, video, holds — quiet, not pinned)
-          → Case study + Contact (black, runs to the footer, white cards)
-            → Footer (black — no colour of its own)
+  → Services "What we do" (black, holds — tag pill per row)
+    → Process rail "How it works" (black, pinned — vertical scroll drives horizontal cards)
+      → Beat: motion-trail particles (black, video, pinned + content rises over it)
+        → Why us (black, holds, white testimonial/badge cards)
+          → Beat: blue-flow (black, video, holds — quiet, not pinned)
+            → Case study + Contact (black, runs to the footer, white cards)
+              → Footer (black — no colour of its own)
 ```
+
+**Copy direction.** Headline, subhead, services and process-rail copy are
+all written to lead with outcome/result over feature description (e.g.
+"More customers. Less guesswork." over a features list), and to keep
+friction low — one repeated CTA (`Let's talk`), no multi-step pricing or
+comparison content to parse. Deliberately **no guarantee language
+anywhere on the site** (no money-back, satisfaction-guarantee, or
+"risk-free" framing of any kind) — this was requested in an early draft
+of the copy brief and explicitly withdrawn before anything was written,
+so it was never added.
 
 Motion runs on **GSAP + ScrollTrigger** for all scroll-linked animation and
 **Lenis** for smooth, momentum-based scrolling site-wide, both loaded via
@@ -182,7 +193,22 @@ continuous subtle scale/drift while it's in view.
 **Services.** The "What we do" list (`.services-list` in `index.html`) is
 a numbered list — large ghost numerals (01/02/03), thin dividers, a
 staggered reveal via `ScrollTrigger.batch` — rather than an icon card
-grid.
+grid. Each row also carries a small outlined tag pill (Design / Conversion
+/ Brand) next to its heading.
+
+**Process rail.** `.rail` (`id="process"`, sits directly after Services)
+is a horizontal-scroll section: vertical scroll drives horizontal motion
+across three "how it works" cards plus a fourth white case-study card
+linking down to LockOn. Same pin technique as the hero/beat-dots
+(`pin: true` on the section), but instead of tweening a fixed distance it
+tweens `x`/`end` as **functions** (`x: () => -railDistance()`, with
+`invalidateOnRefresh: true`), so the scroll distance always matches the
+track's actual rendered width — card widths are viewport-relative, so
+that width isn't a constant. Deliberately framed as "how we work," not
+"browse our projects": Optyx has one real case study so far, and a rail
+that reads as a project gallery would make that thin instead of the
+process steps it's actually built to spotlight (the LockOn card is styled
+as a distinct case-study callout, not one card among a set of projects).
 
 **Cards & buttons.** `.btn-primary` uses its own darker metallic-blue
 gradient (`--btn-blue`/`--btn-blue-hover`, a deep steel/navy blend rather
@@ -196,6 +222,13 @@ the cursor within a proximity radius, `power3.out` while tracking,
 `premiumEase` on release) plus a press-scale, replacing the plain CSS
 hover/`:active` for those users. Touch devices get none of that and rely
 on the CSS hover/press states and the scroll-reveal entrance alone.
+
+A handful of plain-CSS hover transitions layer on top of the JS-driven
+system above rather than replacing it: nav links get a sliding underline,
+the header/footer logo widens its letter-spacing, service rows brighten
+their tag pill, and process-rail/testimonial/contact cards lift or
+brighten their border — all subtle, all `--ease-premium`, none requiring
+JS since they're plain `:hover` state changes.
 
 A subtle fixed grain texture (`body::after`) sits above everything at low
 opacity with `mix-blend-mode: overlay` for a bit of non-distracting depth;
@@ -251,7 +284,15 @@ material before launch:
   anywhere (the second beat section is now a quiet video-free hold); the
   file is still in the repo in case it's wanted again, safe to delete
   otherwise.
-- **Testimonials** — quotes and attribution in the "Why us" section.
+- **Testimonials** — one of the two cards in the "Why us" section is a
+  **drafted** 5-star quote attributed to Guy Lockwood (CEO, LockOn),
+  written by Optyx to match the site's tone — Guy Lockwood has not
+  reviewed or approved this wording. It carries a visible dashed
+  "Draft — pending Guy Lockwood's approval" tag (`.draft-tag` in
+  `css/styles.css`) for exactly that reason; do not remove the tag or
+  treat the quote as a genuine testimonial until he's actually signed off
+  on it. The second card is still a generic bracketed placeholder, quote
+  and attribution both to be replaced.
 - **Awards / credibility badges** — placeholder badges in the "Why us"
   section.
 - **Contact form** — currently shows a message on submit instead of

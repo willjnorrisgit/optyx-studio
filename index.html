@@ -55,9 +55,12 @@
         </ul>
       </nav>
 
-      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
+      <div class="header-actions">
+        <a class="btn btn-primary btn-sm nav-cta" href="#contact">Let's talk</a>
+        <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
 
     <div class="wrap mobile-nav" id="mobileNav">
@@ -66,6 +69,7 @@
         <li><a href="#work">Work</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
+      <a class="btn btn-primary btn-sm mobile-nav-cta" href="#contact">Let's talk</a>
     </div>
   </header>
 
@@ -79,8 +83,8 @@
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="wrap hero-inner">
         <div class="hero-copy">
-          <h1 class="hero-headline">Premium websites built to convert ad spend into customers.</h1>
-          <p class="hero-subhead">We design and build conversion-focused websites for businesses that already know how to advertise.</p>
+          <h1 class="hero-headline">More customers. Less guesswork.</h1>
+          <p class="hero-subhead">A conversion-ready website for businesses already running ads — built fast, with nothing for you to manage.</p>
           <a class="btn btn-primary hero-cta" href="#contact">Let's talk</a>
         </div>
 
@@ -112,27 +116,69 @@
           <li class="service-row reveal">
             <span class="service-num" aria-hidden="true">01</span>
             <div class="service-row-body">
-              <h3>Website Design</h3>
-              <p>Custom, brand-driven design that looks as credible as the business behind it — no templates, no clutter.</p>
+              <div class="service-row-head">
+                <h3>Website Design</h3>
+                <span class="service-tag">Design</span>
+              </div>
+              <p>A site visitors trust in the first few seconds — built around your brand, not stitched from a template.</p>
             </div>
           </li>
 
           <li class="service-row reveal">
             <span class="service-num" aria-hidden="true">02</span>
             <div class="service-row-body">
-              <h3>Conversion-Focused Builds</h3>
-              <p>Every layout, headline and call-to-action is built around one goal: turning visitors into booked calls and paying customers.</p>
+              <div class="service-row-head">
+                <h3>Conversion-Focused Builds</h3>
+                <span class="service-tag">Conversion</span>
+              </div>
+              <p>Every headline, layout and button exists for one reason: turning the traffic you're already paying for into booked calls.</p>
             </div>
           </li>
 
           <li class="service-row reveal">
             <span class="service-num" aria-hidden="true">03</span>
             <div class="service-row-body">
-              <h3>Brand &amp; Digital Presence</h3>
-              <p>A consistent look and voice across your site, socials and ad landing pages, so every touchpoint feels like one brand.</p>
+              <div class="service-row-head">
+                <h3>Brand &amp; Digital Presence</h3>
+                <span class="service-tag">Brand</span>
+              </div>
+              <p>One consistent look across your site, socials and ad landing pages, so every touchpoint does its share of the selling.</p>
             </div>
           </li>
         </ol>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS — horizontal scroll rail -->
+    <section class="rail" id="process" data-theme="dark">
+      <div class="wrap rail-head">
+        <p class="eyebrow reveal">How it works</p>
+        <h2 class="section-title reveal">From first call to booked calls.</h2>
+      </div>
+      <div class="rail-viewport">
+        <ul class="rail-track">
+          <li class="rail-card">
+            <span class="rail-num" aria-hidden="true">01</span>
+            <h3>Discovery call</h3>
+            <p>15 minutes on what you sell, who your ads reach, and what you need the site to do.</p>
+          </li>
+          <li class="rail-card">
+            <span class="rail-num" aria-hidden="true">02</span>
+            <h3>Design &amp; build</h3>
+            <p>We design and build around your offer — no templates, no months of back-and-forth. Just a fast, focused build.</p>
+          </li>
+          <li class="rail-card">
+            <span class="rail-num" aria-hidden="true">03</span>
+            <h3>Launch</h3>
+            <p>Your site goes live, connected to the ads you're already running — ready to turn clicks into booked calls.</p>
+          </li>
+          <li class="rail-card rail-card-case">
+            <span class="rail-tag">Case study</span>
+            <h3>LockOn</h3>
+            <p>See how this played out for an aerospace &amp; defense consultancy.</p>
+            <a class="rail-link" href="#work">View the project<span aria-hidden="true"> &rarr;</span></a>
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -157,9 +203,18 @@
         </p>
 
         <div class="testimonials">
-          <blockquote class="testimonial reveal">
-            <p>"[Placeholder testimonial — a short, specific line about the result Optyx Studio delivered.]"</p>
-            <cite>— Name, Title, Company</cite>
+          <!--
+            DRAFT — written by Optyx, not yet reviewed or approved by Guy
+            Lockwood. This attributes a quote to a real, named person at a
+            real client. Do not treat as a genuine testimonial and do not
+            remove the "Draft" tag below until he has actually signed off
+            on this wording.
+          -->
+          <blockquote class="testimonial testimonial-draft reveal">
+            <div class="stars" aria-hidden="true">★★★★★</div>
+            <p>"Optyx rebuilt our site in weeks, not months, and it finally looks like the company we actually are. We didn't have to manage a single part of it."</p>
+            <cite>— Guy Lockwood, CEO, LockOn</cite>
+            <span class="draft-tag">Draft — pending Guy Lockwood's approval</span>
           </blockquote>
           <blockquote class="testimonial reveal">
             <p>"[Placeholder testimonial — what it was like to work with the studio, in the client's own words.]"</p>

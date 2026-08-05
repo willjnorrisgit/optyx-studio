@@ -222,6 +222,35 @@ if (!prefersReducedMotion && window.gsap && window.ScrollTrigger) {
   }
 
   // ---------------------------------------------------
+  // Process rail — vertical scroll drives horizontal motion across the
+  // process cards + case-study card. x and end are function-based so
+  // invalidateOnRefresh recomputes both from the track's actual rendered
+  // width instead of a value baked in at load (card widths are
+  // viewport-relative, so that width changes on resize).
+  // ---------------------------------------------------
+  const rail = document.querySelector('.rail');
+  const railViewport = rail ? rail.querySelector('.rail-viewport') : null;
+  const railTrack = rail ? rail.querySelector('.rail-track') : null;
+
+  if (rail && railViewport && railTrack) {
+    const railDistance = () => Math.max(0, railTrack.scrollWidth - railViewport.clientWidth);
+
+    gsap.to(railTrack, {
+      x: () => -railDistance(),
+      ease: 'none',
+      scrollTrigger: {
+        trigger: rail,
+        start: 'top top',
+        end: () => `+=${railDistance()}`,
+        scrub: 1,
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+      },
+    });
+  }
+
+  // ---------------------------------------------------
   // Beat-dots — motion-trail pin-and-hold. Once the section reaches the
   // top of the viewport it locks in place for ~1.5 screens: the video
   // fades in, the caption rises up from below the frame and settles onto

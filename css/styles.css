@@ -272,6 +272,18 @@ ul { list-style: none; margin: 0; padding: 0; }
 .btn:active { transform: scale(0.96); }
 .btn-ghost:active { transform: translateY(-2px) scale(0.96); }
 
+/* Compact variant for the header — a full-size .btn is taller than the
+   72px pill nav comfortably fits. */
+.btn-sm {
+  padding: 0.55rem 1.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.mobile-nav-cta {
+  margin: 0.5rem 1.5rem 0.25rem;
+}
+
 /* ---------------------------------------------------
    Header / nav — floating rounded pill, inset from the top edge, instead
    of a flush full-width bar.
@@ -306,6 +318,7 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 
 .site-nav a {
+  position: relative;
   font-family: var(--font-display);
   font-size: 0.8rem;
   font-weight: 600;
@@ -316,6 +329,32 @@ ul { list-style: none; margin: 0; padding: 0; }
   transition: opacity 0.2s var(--ease);
 }
 .site-nav a:hover { opacity: 1; }
+
+/* Underline slides in from the left on hover/focus rather than just
+   appearing, so it reads as a deliberate, subtle motion rather than a
+   state toggle. */
+.site-nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease-premium);
+}
+.site-nav a:hover::after,
+.site-nav a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 
 .nav-toggle {
   display: none;
@@ -387,7 +426,9 @@ ul { list-style: none; margin: 0; padding: 0; }
   text-transform: uppercase;
   color: inherit;
   line-height: 1;
+  transition: letter-spacing 0.4s var(--ease-premium), opacity 0.4s var(--ease-premium);
 }
+.logo:hover .logo-word { letter-spacing: 0.22em; opacity: 0.8; }
 
 /* ---------------------------------------------------
    Sections keep their own solid --bg-black as the static/reduced-motion
@@ -663,12 +704,39 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 }
 .service-row:hover .service-num { opacity: 0.75; }
 
+.service-row-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin: 0 0 0.6rem;
+}
+
 .service-row-body h3 {
   font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 700;
-  margin: 0 0 0.6rem;
+  margin: 0;
   letter-spacing: -0.01em;
+}
+
+/* Orvixa-style tag pill — quiet by default, brightens on row hover
+   alongside .service-num so the whole row reads as one hover target. */
+.service-tag {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  transition: border-color 0.4s var(--ease-premium), color 0.4s var(--ease-premium);
+}
+.service-row:hover .service-tag {
+  border-color: var(--accent);
+  color: var(--accent-bright);
 }
 
 .service-row-body p {
@@ -677,6 +745,113 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   max-width: 46ch;
   margin: 0;
 }
+
+/* ---------------------------------------------------
+   Process rail — vertical scroll drives horizontal motion (see
+   js/main.js). Sized to one viewport since the pin's own scroll
+   distance provides the hold, same reasoning as .beat-dots below.
+--------------------------------------------------- */
+
+.rail {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--bg-black);
+}
+
+.rail-head { margin-bottom: clamp(2.5rem, 6vw, 4rem); }
+.rail-head .section-title { max-width: 22ch; }
+
+.rail-viewport { overflow: hidden; width: 100%; }
+
+.rail-track {
+  display: flex;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  padding-inline: var(--gutter);
+  width: max-content;
+  list-style: none;
+  margin: 0;
+}
+
+.rail-card {
+  flex: 0 0 auto;
+  width: min(78vw, 380px);
+  padding: clamp(2rem, 4vw, 2.75rem);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.4s var(--ease-premium), background 0.4s var(--ease-premium),
+    transform 0.4s var(--ease-premium);
+}
+.rail-card:hover {
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.045);
+  transform: translateY(-6px);
+}
+
+.rail-num {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--accent);
+  opacity: 0.6;
+  margin-bottom: 1.5rem;
+}
+
+.rail-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.65rem;
+  letter-spacing: -0.01em;
+}
+
+.rail-card p {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Case-study card breaks to a white panel — same "card floating on
+   black" language as the testimonials/kenburns frame elsewhere, and it
+   visually separates the one real project from the process steps around
+   it rather than presenting it as one of a set. */
+.rail-card-case {
+  background: var(--bg-panel);
+  border-color: transparent;
+}
+.rail-card-case:hover { background: var(--bg-panel); transform: translateY(-6px); }
+.rail-card-case h3 { color: var(--text-panel); }
+.rail-card-case p { color: var(--text-panel-dim); }
+
+.rail-tag {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+}
+
+.rail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1.1rem;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-panel);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 0.1rem;
+  transition: gap 0.3s var(--ease-premium), opacity 0.3s var(--ease-premium);
+}
+.rail-link:hover { gap: 0.65rem; opacity: 0.7; }
 
 /* ---------------------------------------------------
    Video punctuation beats — short holds, layered depth
@@ -777,6 +952,28 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
   font-style: normal;
   color: var(--text-panel-dim);
   font-size: 0.88rem;
+}
+
+.testimonial-draft .stars {
+  color: var(--accent);
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  margin-bottom: 0.9rem;
+}
+
+/* Dashed border matches .badge below — the site's one visual convention
+   for "not final yet," reused here since this quote is attributed to a
+   real, named person and can't go out until he's actually approved it. */
+.draft-tag {
+  display: block;
+  width: fit-content;
+  margin-top: 1.1rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px dashed var(--border-panel-strong);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  color: var(--text-panel-dim);
 }
 
 .badges {
@@ -1073,6 +1270,10 @@ section { padding-block: clamp(4rem, 8vw, 8rem); position: relative; }
 @media (max-width: 760px) {
   .site-nav { display: none; }
   .nav-toggle { display: flex; }
+
+  /* Redundant next to .mobile-nav-cta once the menu opens — keeps the
+     collapsed header to just logo + toggle instead of competing with it. */
+  .nav-cta { display: none; }
 
   .header-inner { height: 76px; }
 
